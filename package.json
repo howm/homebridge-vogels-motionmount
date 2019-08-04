@@ -6,7 +6,7 @@
   "author": "gh_user",
   "description": "gh_short_description",
   "license": "MIT",
-  "private": true,
+  "private": false,
   "scripts": {
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "custom": "customBoilerplate",
