@@ -1,0 +1,24 @@
+{
+  "name": "@gh_user/gh_repo_name",
+  "version": "package_version",
+  "main": "src/index.ts",
+  "repository": "git@github.com:gh_user/gh_repo_name.git",
+  "author": "gh_user",
+  "description": "gh_short_description",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "custom": "customBoilerplate",
+    "build": "buildTSPackage"
+  },
+  "devDependencies": {
+    "@boilerz/build-tools": "^1.2.0",
+    "@boilerz/eslint-config": "1.4.0",
+    "@boilerz/prettier-config": "^1.0.0",
+    "@boilerz/tsconfig": "^1.0.0",
+    "eslint": "^5",
+    "prettier": "^1",
+    "typescript": "^3"
+  }
+}

@@ -1,0 +1,3 @@
+{
+  "extends": "@boilerz/eslint-config"
+}
