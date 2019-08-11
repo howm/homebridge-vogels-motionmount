@@ -24,5 +24,16 @@
     "prettier": "^1",
     "ts-jest": "^24.0.2",
     "typescript": "^3"
+  },
+  "greenkeeper": {
+    "commitMessages": {
+      "initialBadge": ":pencil: add Greenkeeper badge",
+      "initialDependencies": ":arrow_up: update dependencies",
+      "initialBranches": ":tada: whitelist greenkeeper branches",
+      "dependencyUpdate": ":arrow_up: update ${dependency} to version ${version}",
+      "devDependencyUpdate": ":arrow_up: update ${dependency} to version ${version}",
+      "dependencyPin": ":pushpin: pin ${dependency} to ${oldVersion}",
+      "devDependencyPin": ":pushpin: pin ${dependency} to ${oldVersion}"
+    }
   }
 }
