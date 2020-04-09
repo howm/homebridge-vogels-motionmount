@@ -1,6 +1,6 @@
 # @boilerz/boilerplate-lib
 
-[![GitHub forks](https://img.shields.io/github/forks/boilerz/boilerplate-lib?label=Fork%20me)](https://github.com/boilerz/boilerplate-lib/fork) [![Greenkeeper badge](https://badges.greenkeeper.io/boilerz/boilerplate-lib.svg)](https://greenkeeper.io/)
+[![GitHub forks](https://img.shields.io/github/forks/boilerz/boilerplate-lib?label=Fork%20me)](https://github.com/boilerz/boilerplate-lib/fork)
 
 > Boilerplate lib.
 
