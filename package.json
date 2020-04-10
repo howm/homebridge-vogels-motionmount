@@ -14,7 +14,7 @@
     "test": "jest --coverage"
   },
   "devDependencies": {
-    "@boilerz/build-tools": "^1.3.0",
+    "@boilerz/build-tools": "^1.3.2",
     "@boilerz/eslint-config": "^1.7.0",
     "@boilerz/prettier-config": "^1.0.0",
     "@boilerz/tsconfig": "^1.3.0",
