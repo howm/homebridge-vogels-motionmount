@@ -1,6 +1,7 @@
 # @boilerz/boilerplate-lib
 
 [![GitHub forks](https://img.shields.io/github/forks/boilerz/boilerplate-lib?label=Fork%20me)](https://github.com/boilerz/boilerplate-lib/fork)
+[![codecov](https://codecov.io/gh/boilerz/boilerplate-lib/branch/master/graph/badge.svg)](https://codecov.io/gh/boilerz/boilerplate-lib)
 
 > Boilerplate lib.
 
@@ -19,3 +20,5 @@ Then after pull run:
 yarn install
 yarn custom
 ```
+
+2. Add `CODECOV_TOKEN` env var on the CI settings of the project.
