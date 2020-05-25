@@ -6,4 +6,5 @@ module.exports = {
   },
   collectCoverageFrom: ['<rootDir>/src/**/*.ts'],
   testPathIgnorePatterns: ['dist'],
+  restoreMocks: true,
 };
