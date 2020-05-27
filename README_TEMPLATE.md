@@ -9,7 +9,7 @@
 ### Install
 
 ```bash
-yarn add -D @gh_user/gh_repo_name
+npx install-peerdeps @gh_user/gh_repo_name 
 ```
 
 ### Usage
