@@ -1,26 +1,25 @@
-# @boilerz/boilerplate-lib
+# @howm/homebridge-vogels-motionmount
 
-[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/boilerz/boilerplate-lib/blob/master/LICENSE)
-[![GitHub forks](https://img.shields.io/github/forks/boilerz/boilerplate-lib?label=Fork%20me)](https://github.com/boilerz/boilerplate-lib/fork)
-[![CircleCI](https://circleci.com/gh/boilerz/boilerplate-lib/tree/master.svg?style=shield)](https://circleci.com/gh/boilerz/boilerplate-lib/tree/master)
-[![codecov](https://codecov.io/gh/boilerz/boilerplate-lib/branch/master/graph/badge.svg)](https://codecov.io/gh/boilerz/boilerplate-lib)
+[![GitHub package.json version](https://img.shields.io/github/package-json/v/howm/homebridge-vogels-motionmount)](https://www.npmjs.com/package/@howm/homebridge-vogels-motionmount)
+[![CircleCI](https://circleci.com/gh/howm/homebridge-vogels-motionmount/tree/master.svg?style=shield)](https://circleci.com/gh/howm/homebridge-vogels-motionmount/tree/master)
+[![codecov](https://codecov.io/gh/howm/homebridge-vogels-motionmount/branch/master/graph/badge.svg)](https://codecov.io/gh/howm/homebridge-vogels-motionmount)
 
-> Boilerplate lib.
+> Homebridge plugin that support Vogel's motion mount
 
-### Setup
-
-1. Fork the project or manually run:
-```bash
-git clone git@github.com:boilerz/boilerplate-lib.git my-lib
-cd my-lib
-git remote set-url origin git@github.com:gh_user/my-lib
-```
-
-Then after pull run:
+### Install
 
 ```bash
-yarn install
-yarn custom
+npx install-peerdeps @howm/homebridge-vogels-motionmount 
 ```
 
-2. Add `CODECOV_TOKEN` env var on the CI settings of the project.
+### Usage
+
+// ...
+
+### Release
+
+```bash
+yarn version
+yarn build
+yarn publish dist --access public
+```

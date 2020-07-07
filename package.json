@@ -1,15 +1,14 @@
 {
-  "name": "@gh_user/gh_repo_name",
-  "version": "package_version",
+  "name": "@howm/homebridge-vogels-motionmount",
+  "version": "0.1.0",
   "main": "src/index.ts",
-  "repository": "git@github.com:gh_user/gh_repo_name.git",
-  "author": "gh_user",
-  "description": "gh_short_description",
+  "repository": "git@github.com:howm/homebridge-vogels-motionmount.git",
+  "author": "howm",
+  "description": "Homebridge plugin that support Vogel's motion mount",
   "license": "MIT",
   "private": false,
   "scripts": {
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
-    "custom": "customBoilerplate",
     "build": "buildTSPackage",
     "test": "jest --coverage",
     "codecov": "codecov"
