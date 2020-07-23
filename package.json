@@ -1,5 +1,5 @@
 {
-  "name": "@howm/homebridge-vogels-motionmount",
+  "name": "homebridge-vogels-motionmount",
   "version": "0.1.0",
   "main": "src/index.ts",
   "repository": "git@github.com:howm/homebridge-vogels-motionmount.git",
@@ -7,9 +7,17 @@
   "description": "Homebridge plugin that support Vogel's motion mount",
   "license": "MIT",
   "private": false,
+  "keywords": [
+    "homebridge-plugin"
+  ],
+  "engines": {
+    "node": ">=8.0.0",
+    "homebridge": ">=0.4.0"
+  },
   "scripts": {
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "build": "buildTSPackage",
+    "build:watch": "tsc --watch",
     "test": "jest --coverage",
     "codecov": "codecov"
   },
@@ -19,8 +27,11 @@
     "@boilerz/prettier-config": "^1.0.0",
     "@boilerz/tsconfig": "^1.3.0",
     "@types/jest": "^26.0.4",
+    "@types/lodash.padstart": "^4.6.6",
+    "@types/noble": "^0.0.40",
     "codecov": "^3.7.1",
     "eslint": "^6.8.0",
+    "homebridge": "^1.1.1",
     "jest": "^25.5.4",
     "prettier": "^2.0.5",
     "ts-jest": "^25.5.1",
@@ -28,5 +39,13 @@
   },
   "resolutions": {
     "eslint/mkdirp/minimist": "^1.2.5"
+  },
+  "peerDependencies": {
+    "homebridge": "^1.1.1"
+  },
+  "dependencies": {
+    "@abandonware/noble": "^1.9.2-9",
+    "lodash.padstart": "^4.6.1",
+    "waait": "^1.0.5"
   }
 }
