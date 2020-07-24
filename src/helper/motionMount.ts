@@ -17,7 +17,6 @@ export const DEFAULT_POSITION = {
 
 let peripheralInstance: Peripheral | null = null;
 let peripheralAccessInProgress = false;
-let motionMountMoving = false;
 let currentPosition: Position = DEFAULT_POSITION;
 
 export interface Position {
@@ -124,11 +123,6 @@ export async function moveToPosition(
 ): Promise<void> {
   log('[moveToPosition] Going to', position.name);
 
-  while (motionMountMoving) {
-    await wait(1000);
-  }
-
-  motionMountMoving = true;
   const peripheral = await getPeripheral(log);
 
   log('[moveToPosition] Getting characteristics ...');
@@ -157,8 +151,6 @@ export async function moveToPosition(
 
   log('[moveToPosition] Disconnecting');
   await peripheral.disconnectAsync();
-
-  motionMountMoving = false;
 }
 
 export async function isPositioned(
@@ -179,5 +171,5 @@ export async function isPositioned(
 }
 
 export function setupPositionRetrievalInterval(log: Logging): NodeJS.Timeout {
-  return setInterval(() => updateCurrentPosition(log), 20000);
+  return setInterval(() => updateCurrentPosition(log), 5 * 60 * 1000);
 }
