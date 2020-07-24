@@ -26,15 +26,25 @@ export interface Position {
   orientation: number;
 }
 
-export async function detectFirstMotionMountPeripheral(): Promise<Peripheral> {
+export async function detectFirstMotionMountPeripheral(
+  log: Logging,
+): Promise<Peripheral> {
+  log('[detectFirstMotionMountPeripheral] Removing discover listeners');
   noble.removeAllListeners('discover');
 
   return new Promise((resolve, reject) => {
     noble.on('discover', async (peripheral: Peripheral) => {
+      log(
+        '[detectFirstMotionMountPeripheral] Peripheral discovered, stopping scan',
+      );
       await noble.stopScanningAsync();
       resolve(peripheral);
     });
-    noble.startScanningAsync(MOTION_MOUNT_SERVICE_UUIDS, false).catch(reject);
+    log('[detectFirstMotionMountPeripheral] Starting scan');
+    noble.startScanningAsync(MOTION_MOUNT_SERVICE_UUIDS, false).catch((err) => {
+      log.error('[detectFirstMotionMountPeripheral] scan failure');
+      reject(err);
+    });
   });
 }
 
@@ -52,7 +62,7 @@ async function getPeripheral(log: Logging): Promise<Peripheral> {
   try {
     peripheralAccessInProgress = true;
     log('[getPeripheral] Detecting peripheral ...');
-    peripheralInstance = await detectFirstMotionMountPeripheral();
+    peripheralInstance = await detectFirstMotionMountPeripheral(log);
     log('[getPeripheral] Peripheral detected');
     peripheralInstance.once('disconnect', () => {
       log('[getPeripheral] Disconnected, resetting instance');
