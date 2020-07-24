@@ -39,18 +39,21 @@ export async function detectFirstMotionMountPeripheral(): Promise<Peripheral> {
 }
 
 async function getPeripheral(log: Logging): Promise<Peripheral> {
-  log('[getPeripheral] Peripheral detected, connecting ...');
   if (peripheralInstance && !peripheralAccessInProgress) {
+    log('[getPeripheral] Returning instance');
     return peripheralInstance;
   }
 
   while (peripheralAccessInProgress) {
+    log('[getPeripheral] Waiting end of use');
     await wait(1000);
   }
 
   try {
     peripheralAccessInProgress = true;
+    log('[getPeripheral] Detecting peripheral ...');
     peripheralInstance = await detectFirstMotionMountPeripheral();
+    log('[getPeripheral] Peripheral detected');
     peripheralInstance.once('disconnect', () => {
       log('[getPeripheral] Disconnected, resetting instance');
       peripheralInstance = null;
