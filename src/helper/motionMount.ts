@@ -170,7 +170,3 @@ export async function isPositioned(
     orientation < position.orientation + rangeTolerance
   );
 }
-
-export function setupPositionRetrievalInterval(log: Logging): NodeJS.Timeout {
-  return setInterval(() => updateCurrentPosition(log), 5 * 60 * 1000);
-}

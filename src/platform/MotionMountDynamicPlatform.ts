@@ -17,7 +17,6 @@ import {
   isPositioned,
   moveToPosition,
   Position,
-  setupPositionRetrievalInterval,
 } from '../helper/motionMount';
 
 let Accessory: typeof PlatformAccessory;
@@ -54,9 +53,6 @@ export default class MotionMountDynamicPlatform
     this.api = api;
     this.hap = api.hap;
     Accessory = api.platformAccessory;
-
-    // Setup the retrieval of position
-    setupPositionRetrievalInterval(log);
 
     const positions: Position[] = (config.positions as Position[]) || [];
     const positionNames = positions.map(
