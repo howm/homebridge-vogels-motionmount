@@ -55,7 +55,7 @@ async function getPeripheral(log: Logging): Promise<Peripheral> {
   }
 
   while (peripheralAccessInProgress) {
-    log('[getPeripheral] Waiting end of use');
+    log.debug('[getPeripheral] Waiting end of use');
     await wait(1000);
   }
 
@@ -87,7 +87,7 @@ export async function updateCurrentPosition(log: Logging): Promise<void> {
   const {
     characteristics: [wallDistanceCharacteristic, orientationCharacteristic],
   } = await peripheral.discoverSomeServicesAndCharacteristicsAsync(
-    MOTION_MOUNT_SERVICE_UUIDS,
+    [],
     MOTION_MOUNT_CHARACTERISTICS_UUIDS,
   );
 
@@ -135,7 +135,7 @@ export async function moveToPosition(
   const {
     characteristics: [wallDistanceCharacteristic, orientationCharacteristic],
   } = await peripheral.discoverSomeServicesAndCharacteristicsAsync(
-    MOTION_MOUNT_SERVICE_UUIDS,
+    [],
     MOTION_MOUNT_CHARACTERISTICS_UUIDS,
   );
 
