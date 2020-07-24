@@ -149,6 +149,7 @@ export async function moveToPosition(
     await wait(2000);
   }
 
+  currentPosition = position;
   log('[moveToPosition] Disconnecting');
   await peripheral.disconnectAsync();
 }
