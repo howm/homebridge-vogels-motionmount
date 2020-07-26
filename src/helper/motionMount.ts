@@ -1,7 +1,7 @@
 import noble, { Peripheral } from '@abandonware/noble';
 import { Logging } from 'homebridge';
 import wait from 'waait';
-import { hexToInt, toHex16Buffer } from './number';
+import { toHex16Buffer } from './number';
 
 const MOTION_MOUNT_SERVICE_UUIDS = ['3e6fe65ded7811e4895e00026fd5c52c'];
 const MOTION_MOUNT_CHARACTERISTICS_UUIDS = [
@@ -15,9 +15,8 @@ export const DEFAULT_POSITION = {
   orientation: 0,
 };
 
-let peripheralInstance: Peripheral | null = null;
-let peripheralAccessInProgress = false;
 let currentPosition: Position = DEFAULT_POSITION;
+let peripheralInstance: Peripheral | null;
 
 export interface Position {
   name: string;
@@ -48,69 +47,24 @@ export async function detectFirstMotionMountPeripheral(
 }
 
 async function getPeripheral(log: Logging): Promise<Peripheral> {
-  if (peripheralInstance && !peripheralAccessInProgress) {
-    log('[getPeripheral] Returning instance');
-    return peripheralInstance;
-  }
-
-  while (peripheralAccessInProgress) {
-    log.debug('[getPeripheral] Waiting end of use');
-    await wait(1000);
-  }
-
-  try {
-    peripheralAccessInProgress = true;
+  if (!peripheralInstance) {
     log('[getPeripheral] Detecting peripheral ...');
     peripheralInstance = await detectFirstMotionMountPeripheral(log);
     log('[getPeripheral] Peripheral detected');
-    peripheralInstance.once('disconnect', () => {
-      log('[getPeripheral] Disconnected, resetting instance');
-      peripheralInstance = null;
-      peripheralAccessInProgress = false;
-    });
-    log('[getPeripheral] Connecting ...');
-    await peripheralInstance.connectAsync();
-    log('[getPeripheral] Connection established');
-    return peripheralInstance;
-  } catch (err) {
-    peripheralAccessInProgress = false;
-    throw err;
   }
-}
 
-export async function updateCurrentPosition(log: Logging): Promise<void> {
-  log('[updateCurrentPosition] Checking position');
-  const peripheral = await getPeripheral(log);
+  if (peripheralInstance.state === 'connected') {
+    log('[getPeripheral] Already connected, returning as is');
+    return peripheralInstance;
+  }
 
-  log('[updateCurrentPosition] Getting characteristics ...');
-  const {
-    characteristics: [wallDistanceCharacteristic, orientationCharacteristic],
-  } = await peripheral.discoverSomeServicesAndCharacteristicsAsync(
-    [],
-    MOTION_MOUNT_CHARACTERISTICS_UUIDS,
-  );
-
-  log('[updateCurrentPosition] Reading them ...');
-  const [wallData, orientationData] = await Promise.all([
-    wallDistanceCharacteristic.readAsync(),
-    orientationCharacteristic.readAsync(),
-  ]);
-  const wallDistance = hexToInt(wallData.toString('hex'));
-  const orientation = hexToInt(orientationData.toString('hex'));
+  log('[getPeripheral] Connecting ...');
+  await peripheralInstance.connectAsync();
   log(
-    '[updateCurrentPosition] Read result for wall',
-    wallDistance,
-    'and for orientation',
-    orientation,
+    '[getPeripheral] Connection established, rssi =',
+    peripheralInstance.rssi,
   );
-  log('[updateCurrentPosition] Disconnecting');
-  await peripheral.disconnectAsync();
-
-  currentPosition = {
-    name: 'CurrentPosition',
-    wallDistance,
-    orientation,
-  };
+  return peripheralInstance;
 }
 
 async function getCurrentPosition(): Promise<Position> {
@@ -122,36 +76,36 @@ export async function moveToPosition(
   log: Logging,
 ): Promise<void> {
   log('[moveToPosition] Going to', position.name);
-
   const peripheral = await getPeripheral(log);
 
-  log('[moveToPosition] Getting characteristics ...');
-  const {
-    characteristics: [wallDistanceCharacteristic, orientationCharacteristic],
-  } = await peripheral.discoverSomeServicesAndCharacteristicsAsync(
-    [],
-    MOTION_MOUNT_CHARACTERISTICS_UUIDS,
-  );
+  try {
+    log('[moveToPosition] Getting characteristics ...');
+    const {
+      characteristics: [wallDistanceCharacteristic, orientationCharacteristic],
+    } = await peripheral.discoverSomeServicesAndCharacteristicsAsync(
+      [],
+      MOTION_MOUNT_CHARACTERISTICS_UUIDS,
+    );
 
-  log('[moveToPosition] Setting wallDistance', position.wallDistance);
-  await wallDistanceCharacteristic.writeAsync(
-    toHex16Buffer(position.wallDistance),
-    true,
-  );
-  await wait(2000);
-
-  log('[moveToPosition] Setting orientation', position.orientation);
-  if (position.wallDistance > 5) {
-    await orientationCharacteristic!.writeAsync(
-      toHex16Buffer(position.orientation),
+    log('[moveToPosition] Setting wallDistance', position.wallDistance);
+    await wallDistanceCharacteristic.writeAsync(
+      toHex16Buffer(position.wallDistance),
       true,
     );
     await wait(2000);
-  }
 
-  currentPosition = position;
-  log('[moveToPosition] Disconnecting');
-  await peripheral.disconnectAsync();
+    log('[moveToPosition] Setting orientation', position.orientation);
+    if (position.wallDistance > 5) {
+      await orientationCharacteristic!.writeAsync(
+        toHex16Buffer(position.orientation),
+        true,
+      );
+    }
+
+    currentPosition = position;
+  } catch (err) {
+    log.error('[moveToPosition]', err.message);
+  }
 }
 
 export async function isPositioned(

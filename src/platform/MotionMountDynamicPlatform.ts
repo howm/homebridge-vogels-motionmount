@@ -119,7 +119,12 @@ export default class MotionMountDynamicPlatform
         (callback: CharacteristicGetCallback) => {
           isPositioned(position, this.log)
             .then((positioned) => {
-              this.log('[configureAccessory] Position read is', positioned);
+              this.log(
+                '[configureAccessory] Position read is',
+                positioned,
+                'for',
+                accessory.displayName,
+              );
               callback(undefined, positioned);
             })
             .catch((err) => {
@@ -131,12 +136,16 @@ export default class MotionMountDynamicPlatform
       .on(
         CharacteristicEventTypes.SET,
         (value: CharacteristicValue, callback: CharacteristicSetCallback) => {
-          this.log.info(`[configureAccessory] Switch state was set to:`, value);
+          this.log.info(
+            `[configureAccessory] Switch state was set to:`,
+            value,
+            'for',
+            accessory.displayName,
+          );
           moveToPosition(value ? position : DEFAULT_OFF_POSITION, this.log)
             .then(() => {
               callback();
               Array.from(this.accessoryByDisplayName.values()).forEach(
-                // eslint-disable-next-line no-shadow
                 (platformAccessory: PlatformAccessory): void => {
                   if (platformAccessory.displayName !== accessory.displayName)
                     platformAccessory

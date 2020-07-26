@@ -31,12 +31,3 @@ export function toHex16Buffer(value: number): Buffer {
   const hexValue = padStart(toInt16(value).toString(16), 4, '0');
   return Buffer.from(hexValue, 'hex');
 }
-
-export function hexToInt(hex: string): number {
-  let num = parseInt(hex, 16);
-  const maxVal = 2 ** ((hex.length / 2) * 8);
-  if (num > maxVal / 2 - 1) {
-    num -= maxVal;
-  }
-  return num;
-}
