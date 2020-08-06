@@ -30,7 +30,7 @@
     "@types/lodash.padstart": "^4.6.6",
     "@types/noble": "^0.0.40",
     "codecov": "^3.7.1",
-    "eslint": "^6.8.0",
+    "eslint": "^7.6.0",
     "homebridge": "^1.1.1",
     "jest": "^25.5.4",
     "prettier": "^2.0.5",
