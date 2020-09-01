@@ -1,5 +1,6 @@
 import { API } from 'homebridge';
 import MotionMountDynamicPlatform, {
+  PLUGIN_NAME,
   PLATFORM_NAME,
 } from './platform/MotionMountDynamicPlatform';
 
@@ -7,5 +8,5 @@ import MotionMountDynamicPlatform, {
  * Initializer function called when the plugin is loaded.
  */
 export = (api: API): void => {
-  api.registerPlatform(PLATFORM_NAME, MotionMountDynamicPlatform);
+  api.registerPlatform(PLUGIN_NAME, PLATFORM_NAME, MotionMountDynamicPlatform);
 };
