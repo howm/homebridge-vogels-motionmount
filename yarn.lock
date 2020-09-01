@@ -2459,9 +2459,9 @@ has@^1.0.1, has@^1.0.3:
     function-bind "^1.1.1"
 
 homebridge@^1.1.1:
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/homebridge/-/homebridge-1.1.1.tgz#0a575a00110442a7f3fafabe6f4eda785f765b7d"
-  integrity sha512-eOmHjRSkmkCD3iUqQKAo1fcSFs8gZCAW4LVjBYpxH6mEgKQlYxh9tUtgEIzny6bkplYmOOahQPHSjzfNTDjr6w==
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/homebridge/-/homebridge-1.1.2.tgz#ffc00927ffa12aa74c1c688b9aad97f83291473a"
+  integrity sha512-Ckcdh5wfarCODV4jr1APHYHS5CDl8cCvLXco01rcoEAx6ytjufSlmX6kyo7mtQGMoF8vaKyBy5K1FBwVi+C46A==
   dependencies:
     chalk "^4.1.0"
     commander "5.1.0"
@@ -4809,18 +4809,10 @@ source-map-resolve@^0.5.0:
     source-map-url "^0.4.0"
     urix "^0.1.0"
 
-source-map-support@^0.5.19:
+source-map-support@^0.5.19, source-map-support@^0.5.6:
   version "0.5.19"
   resolved "https://registry.yarnpkg.com/source-map-support/-/source-map-support-0.5.19.tgz#a98b62f86dcaf4f67399648c085291ab9e8fed61"
   integrity sha512-Wonm7zOCIJzBGQdB+thsPar0kYuCIzYvxZwlBa87yi/Mdjv7Tip2cyVbLj5o0cFPN4EVkuTwb3GDDyUx2DGnGw==
-  dependencies:
-    buffer-from "^1.0.0"
-    source-map "^0.6.0"
-
-source-map-support@^0.5.6:
-  version "0.5.16"
-  resolved "https://registry.yarnpkg.com/source-map-support/-/source-map-support-0.5.16.tgz#0ae069e7fe3ba7538c64c98515e35339eac5a042"
-  integrity sha512-efyLRJDr68D9hBBNIPWFjhpFzURh+KJykQwvMyW5UiZzYwoF6l4YMMDIJJEyFWxWCqfyxLzz6tSfUFR+kXXsVQ==
   dependencies:
     buffer-from "^1.0.0"
     source-map "^0.6.0"
