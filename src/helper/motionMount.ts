@@ -1,13 +1,11 @@
 import noble, { Peripheral } from '@abandonware/noble';
 import { Logging } from 'homebridge';
-import wait from 'waait';
-import { toHex16Buffer } from './number';
+import { positionToHex16Buffer } from './number';
 
-const MOTION_MOUNT_SERVICE_UUIDS = ['3e6fe65ded7811e4895e00026fd5c52c'];
-const MOTION_MOUNT_CHARACTERISTICS_UUIDS = [
-  'c005fa0006514800b000000000000000',
-  'c005fa0106514800b000000000000000',
-];
+const MOTION_MOUNT_SERVICE_UUID = '3e6fe65ded7811e4895e00026fd5c52c';
+const MOTION_MOUNT_SET_POSITION_CHARACTERISTIC_UUID =
+  'c005fa2106514800b000000000000000';
+
 const DEFAULT_RANGE_TOLERANCE = 10;
 export const DEFAULT_POSITION = {
   name: 'DefaultPosition',
@@ -39,10 +37,12 @@ export async function detectFirstMotionMountPeripheral(
       resolve(peripheral);
     });
     log('[detectFirstMotionMountPeripheral] Starting scan');
-    noble.startScanningAsync(MOTION_MOUNT_SERVICE_UUIDS, false).catch((err) => {
-      log.error('[detectFirstMotionMountPeripheral] scan failure');
-      reject(err);
-    });
+    noble
+      .startScanningAsync([MOTION_MOUNT_SERVICE_UUID], false)
+      .catch((err) => {
+        log.error('[detectFirstMotionMountPeripheral] scan failure');
+        reject(err);
+      });
   });
 }
 
@@ -81,26 +81,16 @@ export async function moveToPosition(
   try {
     log('[moveToPosition] Getting characteristics ...');
     const {
-      characteristics: [wallDistanceCharacteristic, orientationCharacteristic],
+      characteristics: [setPositionCharacteristic],
     } = await peripheral.discoverSomeServicesAndCharacteristicsAsync(
       [],
-      MOTION_MOUNT_CHARACTERISTICS_UUIDS,
+      [MOTION_MOUNT_SET_POSITION_CHARACTERISTIC_UUID],
     );
 
-    log('[moveToPosition] Setting wallDistance', position.wallDistance);
-    await wallDistanceCharacteristic.writeAsync(
-      toHex16Buffer(position.wallDistance),
+    await setPositionCharacteristic.writeAsync(
+      positionToHex16Buffer(position),
       true,
     );
-    await wait(2000);
-
-    log('[moveToPosition] Setting orientation', position.orientation);
-    if (position.wallDistance > 5) {
-      await orientationCharacteristic!.writeAsync(
-        toHex16Buffer(position.orientation),
-        true,
-      );
-    }
 
     currentPosition = position;
   } catch (err) {

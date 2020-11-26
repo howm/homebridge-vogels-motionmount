@@ -1,4 +1,5 @@
 import padStart from 'lodash.padstart';
+import { Position } from './motionMount';
 
 /**
  * @credit https://stackoverflow.com/questions/6146177/convert-a-signed-decimal-to-hex-encoded-with-twos-complement
@@ -30,4 +31,12 @@ const toInt16 = createToInt(16);
 export function toHex16Buffer(value: number): Buffer {
   const hexValue = padStart(toInt16(value).toString(16), 4, '0');
   return Buffer.from(hexValue, 'hex');
+}
+
+export function positionToHex16Buffer(position: Position): Buffer {
+  return Buffer.from(
+    padStart(toInt16(position.wallDistance).toString(16), 4, '0') +
+      padStart(toInt16(position.orientation).toString(16), 4, '0'),
+    'hex',
+  );
 }
