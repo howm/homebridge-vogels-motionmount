@@ -2,7 +2,7 @@
 
 [![GitHub package.json version](https://img.shields.io/github/package-json/v/howm/homebridge-vogels-motionmount)](https://www.npmjs.com/package/@howm/homebridge-vogels-motionmount)
 
-> Homebridge plugin for a basic support of Vogel's motion mount. This plugin will add a switch for each position you want to store. `On` position mean move wall mount to the given position and `Off` move to the mount to the wall.
+> Unofficial Homebridge plugin for a basic support of Vogel's motion mount. This plugin will add a Television with inputs corresponding to the position presets stored on the mount with the official app.
 
 ### Install
 
@@ -17,33 +17,23 @@ In your `~/.homebridge/config.json` on the platform part add your the config usi
 ```json
 {
   "platform": "MotionMountDynamicPlatform",
-  "name": "MotionMountDynamicPlatform",
-  "positions": [
-    {
-      "name": "Wall",
-      "wallDistance": 0,
-      "orientation": 0
-    },
-    {
-      "name": "Kitchen",
-      "wallDistance": 100,
-      "orientation": -100
-    },
-    {
-      "name": "Front",
-      "wallDistance": 100,
-      "orientation": 50 
-    }
-  ]
+  "name": "MotionMount"
 }
 ```
 
-- `wallDistance` is an integer value between `0` and `100` where `0` mean wall mount on the wall and `100` wall mount fully deployed.
-- `orientation` is a signed integer value between `-100` and `100`, `-100` mean wall mount fully right oriented and `100` wall mount fully left oriented.
+- `name` is optional (default to `MotionMount`)
+ 
+Position presets are retrieved at the startup: 
+ 
+ ![Alt text](screens/motionmount-app.png?raw=true "Motion mount official app") ![Alt text](screens/tv-accessory.png?raw=true "TV accessory")
  
 ### Raspberry PI bluetooth connection issues
 
 Like many others I encountered disconnection issues with the builtin bluetooth of raspberry Pi 3/4 (@see [noble/issues/465](https://github.com/noble/noble/issues/465) and [abandonware/noble/issues/99](https://github.com/abandonware/noble/issues/99) for eg). If you use this device with an external bluetooth device do not forget to set `NOBLE_HCI_DEVICE_ID` env var accordingly (more at https://github.com/abandonware/noble#multiple-adapters-linux-specific).  
+
+### Breaking changes
+
+`v1.x.x` is not backward compatible with `v0.x.x`. Last versions use a TV accessory where `v0.x.x` use switches.
 
 ### Release
 

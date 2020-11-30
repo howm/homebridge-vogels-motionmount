@@ -1,42 +1,37 @@
 import noble, { Peripheral } from '@abandonware/noble';
 import { Logging } from 'homebridge';
-import { positionToHex16Buffer } from './number';
 
 const MOTION_MOUNT_SERVICE_UUID = '3e6fe65ded7811e4895e00026fd5c52c';
 const MOTION_MOUNT_SET_POSITION_CHARACTERISTIC_UUID =
   'c005fa2106514800b000000000000000';
 
-const DEFAULT_RANGE_TOLERANCE = 10;
-export const DEFAULT_POSITION = {
-  name: 'DefaultPosition',
-  wallDistance: 0,
-  orientation: 0,
+export interface PositionPreset {
+  label: string;
+  hexPosition: string;
+}
+
+export const WALL_POSITION: PositionPreset = {
+  label: 'Wall',
+  hexPosition: '00000000',
 };
 
-let currentPosition: Position = DEFAULT_POSITION;
 let peripheralInstance: Peripheral | null;
-
-export interface Position {
-  name: string;
-  wallDistance: number;
-  orientation: number;
-}
 
 export async function detectFirstMotionMountPeripheral(
   log: Logging,
 ): Promise<Peripheral> {
-  log('[detectFirstMotionMountPeripheral] Removing discover listeners');
+  log.info('[detectFirstMotionMountPeripheral] Removing discover listeners');
   noble.removeAllListeners('discover');
 
   return new Promise((resolve, reject) => {
     noble.on('discover', async (peripheral: Peripheral) => {
-      log(
+      log.info(
         '[detectFirstMotionMountPeripheral] Peripheral discovered, stopping scan',
       );
       await noble.stopScanningAsync();
       resolve(peripheral);
     });
-    log('[detectFirstMotionMountPeripheral] Starting scan');
+    log.info('[detectFirstMotionMountPeripheral] Starting scan');
     noble
       .startScanningAsync([MOTION_MOUNT_SERVICE_UUID], false)
       .catch((err) => {
@@ -48,38 +43,34 @@ export async function detectFirstMotionMountPeripheral(
 
 async function getPeripheral(log: Logging): Promise<Peripheral> {
   if (!peripheralInstance) {
-    log('[getPeripheral] Detecting peripheral ...');
+    log.info('[getPeripheral] Detecting peripheral ...');
     peripheralInstance = await detectFirstMotionMountPeripheral(log);
-    log('[getPeripheral] Peripheral detected');
+    log.info('[getPeripheral] Peripheral detected');
   }
 
   if (peripheralInstance.state === 'connected') {
-    log('[getPeripheral] Already connected, returning as is');
+    log.info('[getPeripheral] Already connected, returning as is');
     return peripheralInstance;
   }
 
-  log('[getPeripheral] Connecting ...');
+  log.info('[getPeripheral] Connecting ...');
   await peripheralInstance.connectAsync();
-  log(
+  log.info(
     '[getPeripheral] Connection established, rssi =',
     peripheralInstance.rssi,
   );
   return peripheralInstance;
 }
 
-async function getCurrentPosition(): Promise<Position> {
-  return currentPosition;
-}
-
 export async function moveToPosition(
-  position: Position,
+  positionPreset: PositionPreset,
   log: Logging,
 ): Promise<void> {
-  log('[moveToPosition] Going to', position.name);
+  log.info('[moveToPosition] Going to', positionPreset.label);
   const peripheral = await getPeripheral(log);
 
   try {
-    log('[moveToPosition] Getting characteristics ...');
+    log.info('[moveToPosition] Getting characteristics ...');
     const {
       characteristics: [setPositionCharacteristic],
     } = await peripheral.discoverSomeServicesAndCharacteristicsAsync(
@@ -88,29 +79,50 @@ export async function moveToPosition(
     );
 
     await setPositionCharacteristic.writeAsync(
-      positionToHex16Buffer(position),
+      Buffer.from(positionPreset.hexPosition, 'hex'),
       true,
     );
-
-    currentPosition = position;
   } catch (err) {
     log.error('[moveToPosition]', err.message);
   }
 }
 
-export async function isPositioned(
-  position: Position,
+export async function retrievePositionPresets(
   log: Logging,
-  rangeTolerance = DEFAULT_RANGE_TOLERANCE,
-): Promise<boolean> {
-  log('[isPositioned] Checking position', position.name);
+): Promise<PositionPreset[]> {
+  log.info('[retrievedStoredPositions] Starting the retrieval');
+  const peripheral = await getPeripheral(log);
+  const {
+    characteristics,
+  } = await peripheral.discoverAllServicesAndCharacteristicsAsync();
 
-  const { wallDistance, orientation } = await getCurrentPosition();
+  const positionPresets: PositionPreset[] = [WALL_POSITION];
+  // Characteristics (#10-19 + #23-32) are the first part of the preset (+ 13 offset for the 2nd part)
+  const presetIndexOffset = 13;
+  const presetStartingIndex = 10;
+  const presetEndingIndex = 19;
+  for (
+    let index = presetStartingIndex;
+    index <= presetEndingIndex;
+    index += 1
+  ) {
+    const [presetPartOne, presetPartTwo] = await Promise.all([
+      characteristics[index].readAsync(),
+      characteristics[index + presetIndexOffset].readAsync(),
+    ]);
+    const presetHex =
+      presetPartOne.toString('hex') + presetPartTwo.toString('hex');
 
-  return (
-    wallDistance > position.wallDistance - rangeTolerance &&
-    wallDistance < position.wallDistance + rangeTolerance &&
-    orientation > position.orientation - rangeTolerance &&
-    orientation < position.orientation + rangeTolerance
-  );
+    // First two chars for active/inactive preset (01: active, 00: inactive)
+    if (presetHex.substr(0, 2) === '01') {
+      positionPresets.push({
+        // 2-9 chars contain the position (2-5 hex signed wall distance and 6-9 hex signed orientation)
+        hexPosition: presetHex.substr(2, 8),
+        // 10-end contain the utf8 preset label
+        label: Buffer.from(presetHex.substring(10), 'hex').toString('utf8'),
+      });
+    }
+  }
+  log.info('[retrievedStoredPositions] #Presets found', positionPresets.length);
+  return positionPresets;
 }
