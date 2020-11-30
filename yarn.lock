@@ -295,9 +295,9 @@
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
 "@boilerz/build-tools@^1.4.0":
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/@boilerz/build-tools/-/build-tools-1.4.0.tgz#609555738be3083b66af096fab90e400b5922891"
-  integrity sha512-QLySWQ4YVHrDKkyGu7yD9IL5+8Zx5/VmzQMDRkAJ8X6qspkwacrHgb2TOgcm7bZSdzNTiISUT8yXancH7+Zyaw==
+  version "1.4.1"
+  resolved "https://registry.yarnpkg.com/@boilerz/build-tools/-/build-tools-1.4.1.tgz#2ebe6fbc452a7ca5f979a3c23c7c3fc0edac8ccb"
+  integrity sha512-BS1McRGJ+KEUCqS0nBjZduevX+kr67esRqsC5Vpgr5vUtoDGohNiwcdAZGKphHUlXFky75gvf9eQu+yxoJ9RCQ==
 
 "@boilerz/eslint-config@^1.11.1":
   version "1.11.1"
