@@ -1090,7 +1090,7 @@ bl@^4.0.1:
     inherits "^2.0.4"
     readable-stream "^3.4.0"
 
-bonjour-hap@~3.5.10:
+bonjour-hap@~3.5.11:
   version "3.5.11"
   resolved "https://registry.yarnpkg.com/bonjour-hap/-/bonjour-hap-3.5.11.tgz#318db8d0169cc20a77e769075749f9ac87f807c1"
   integrity sha512-pSYWWxjx3t2vh3sMkBMxQ0QaCqFgqWFz9he9U1JSQ6Lvwev5W19J+nBQWFj55dzUOcH0rPtZh/A+k/MvI5etQw==
@@ -2368,17 +2368,16 @@ growly@^1.3.0:
   resolved "https://registry.yarnpkg.com/growly/-/growly-1.3.0.tgz#f10748cbe76af964b7c96c93c6bcc28af120c081"
   integrity sha1-8QdIy+dq+WS3yWyTxrzCivEgwIE=
 
-hap-nodejs@^0.7.4:
-  version "0.7.7"
-  resolved "https://registry.yarnpkg.com/hap-nodejs/-/hap-nodejs-0.7.7.tgz#09a6113540bfadae583a858da8cc68c5e6a5e385"
-  integrity sha512-fWpWVJRe4kWz0/fNiDUKdTghuzKjqfmJ+cHoDqoSwwXHlCXLgdOXNEqoRx7pU8/nSlvte5ui2Q5lxSafTnB8tw==
+hap-nodejs@^0.7.9:
+  version "0.7.9"
+  resolved "https://registry.yarnpkg.com/hap-nodejs/-/hap-nodejs-0.7.9.tgz#24fd617f309f3e26846c5f13c4bac95601f38e6d"
+  integrity sha512-ic0H0iajNKKq8O2a5HJgZPaxwhgt0PjXZ/rZFGdGhtM+ivfi9LykkC1FZufjHljUhMTvWe1GYXQaF06UVWhyHA==
   dependencies:
-    bonjour-hap "~3.5.10"
+    bonjour-hap "~3.5.11"
     debug "^4.1.1"
     decimal.js "^10.2.0"
     fast-srp-hap "2.0.2"
     futoin-hkdf "~1.3.2"
-    ip "^1.1.3"
     node-persist "^0.0.11"
     tweetnacl "^1.0.3"
 
@@ -2458,14 +2457,14 @@ has@^1.0.1, has@^1.0.3:
   dependencies:
     function-bind "^1.1.1"
 
-homebridge@^1.1.1:
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/homebridge/-/homebridge-1.1.1.tgz#0a575a00110442a7f3fafabe6f4eda785f765b7d"
-  integrity sha512-eOmHjRSkmkCD3iUqQKAo1fcSFs8gZCAW4LVjBYpxH6mEgKQlYxh9tUtgEIzny6bkplYmOOahQPHSjzfNTDjr6w==
+homebridge@^1.1.6:
+  version "1.1.6"
+  resolved "https://registry.yarnpkg.com/homebridge/-/homebridge-1.1.6.tgz#1c3a83d6dc178958a8cad09d2985bcdd6d79e1b3"
+  integrity sha512-fsHEeUGp0t3Ry5Awc2U4LZraEHWmgnokUAa3JOfcTZOY9uxjv4buVMkBCa4CdMUCpMPL25Vit+I8doNqfn4Owg==
   dependencies:
     chalk "^4.1.0"
     commander "5.1.0"
-    hap-nodejs "^0.7.4"
+    hap-nodejs "^0.7.9"
     node-persist "^0.0.11"
     qrcode-terminal "^0.12.0"
     semver "^7.3.2"
@@ -2615,7 +2614,7 @@ ip-regex@^2.1.0:
   resolved "https://registry.yarnpkg.com/ip-regex/-/ip-regex-2.1.0.tgz#fa78bf5d2e6913c911ce9f819ee5146bb6d844e9"
   integrity sha1-+ni/XS5pE8kRzp+BnuUUa7bYROk=
 
-ip@^1.1.3, ip@^1.1.5:
+ip@^1.1.5:
   version "1.1.5"
   resolved "https://registry.yarnpkg.com/ip/-/ip-1.1.5.tgz#bdded70114290828c0a039e72ef25f5aaec4354a"
   integrity sha1-vd7XARQpCCjAoDnnLvJfWq7ENUo=
@@ -3515,11 +3514,6 @@ lodash.memoize@4.x:
   version "4.1.2"
   resolved "https://registry.yarnpkg.com/lodash.memoize/-/lodash.memoize-4.1.2.tgz#bcc6c49a42a2840ed997f323eada5ecd182e0bfe"
   integrity sha1-vMbEmkKihA7Zl/Mj6tpezRguC/4=
-
-lodash.padstart@^4.6.1:
-  version "4.6.1"
-  resolved "https://registry.yarnpkg.com/lodash.padstart/-/lodash.padstart-4.6.1.tgz#d2e3eebff0d9d39ad50f5cbd1b52a7bce6bb611b"
-  integrity sha1-0uPuv/DZ05rVD1y9G1KnvOa7YRs=
 
 lodash.sortby@^4.7.0:
   version "4.7.0"
@@ -5486,11 +5480,6 @@ w3c-xmlserializer@^1.1.2:
     domexception "^1.0.1"
     webidl-conversions "^4.0.2"
     xml-name-validator "^3.0.0"
-
-waait@^1.0.5:
-  version "1.0.5"
-  resolved "https://registry.yarnpkg.com/waait/-/waait-1.0.5.tgz#6a3c7aaa88bd0a1a545e9d47890b9595bebf9aa7"
-  integrity sha512-wp+unA4CpqxvBUKHHv8D86fK4jWByHAWyhEXXVHfVUZfK+16ylpj7hjQ58Z8j9ntu8XNukRQT8Fi5qbyJ8rkyw==
 
 walker@^1.0.7, walker@~1.0.5:
   version "1.0.7"

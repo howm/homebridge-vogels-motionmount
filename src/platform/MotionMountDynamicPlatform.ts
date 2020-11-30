@@ -1,34 +1,24 @@
 import {
-  API,
-  APIEvent,
-  CharacteristicEventTypes,
-  CharacteristicSetCallback,
-  CharacteristicGetCallback,
-  CharacteristicValue,
-  DynamicPlatformPlugin,
-  HAP,
   Logging,
+  API,
   PlatformAccessory,
-  PlatformAccessoryEvent,
+  Categories,
+  HAP,
+  DynamicPlatformPlugin,
+  APIEvent,
   PlatformConfig,
 } from 'homebridge';
 import {
-  DEFAULT_POSITION,
-  isPositioned,
+  retrievePositionPresets,
+  PositionPreset,
   moveToPosition,
-  Position,
+  WALL_POSITION,
 } from '../helper/motionMount';
-
-let Accessory: typeof PlatformAccessory;
 
 export const PLUGIN_NAME = 'homebridge-vogels-motionmount';
 export const PLATFORM_NAME = 'MotionMountDynamicPlatform';
 
-const DEFAULT_OFF_POSITION: Position = {
-  name: 'DefaultOffPosition',
-  wallDistance: 0,
-  orientation: 0,
-};
+let Accessory: typeof PlatformAccessory;
 
 export default class MotionMountDynamicPlatform
   implements DynamicPlatformPlugin {
@@ -38,130 +28,143 @@ export default class MotionMountDynamicPlatform
 
   private readonly hap: HAP;
 
-  private readonly positionByName: Map<string, Position> = new Map<
-    string,
-    Position
-  >();
-
-  private readonly accessoryByDisplayName: Map<
-    string,
-    PlatformAccessory
-  > = new Map<string, PlatformAccessory>();
+  private tvAccessory: PlatformAccessory;
 
   constructor(log: Logging, config: PlatformConfig, api: API) {
     this.log = log;
     this.api = api;
     this.hap = api.hap;
+
     Accessory = api.platformAccessory;
 
-    const positions: Position[] = (config.positions as Position[]) || [];
-    const positionNames = positions.map(
-      (position: Position): string => position.name,
-    );
-    positions.forEach(
-      (position: Position): Map<string, Position> =>
-        this.positionByName.set(position.name, position),
-    );
-
-    this.api.on(APIEvent.DID_FINISH_LAUNCHING, () => {
-      // Registering new added position
-      this.positionByName.forEach((position: Position): void => {
-        const displayName = position.name;
-        if (this.accessoryByDisplayName.has(displayName)) return;
-
-        const accessory = new Accessory(
-          displayName,
-          this.hap.uuid.generate(displayName),
+    this.api.on(APIEvent.DID_FINISH_LAUNCHING, async () => {
+      if (!this.tvAccessory) {
+        this.tvAccessory = await this.createTvAccessory(
+          config.name || 'MotionMount',
         );
-
-        accessory.addService(
-          this.hap.Service.Switch,
-          `MotionMount${displayName}`,
-        );
-        this.configureAccessory(accessory);
         this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [
-          accessory,
+          this.tvAccessory,
         ]);
-      });
-
-      // Clearing the unused ones
-      const unusedAccessories = Array.from(
-        this.accessoryByDisplayName.values(),
-      ).filter(
-        (accessory: PlatformAccessory): boolean =>
-          !positionNames.includes(accessory.displayName),
-      );
-
-      this.log('Clearing ...', unusedAccessories.length, 'accessory(ies)');
-      this.api.unregisterPlatformAccessories(
-        PLUGIN_NAME,
-        PLATFORM_NAME,
-        unusedAccessories,
-      );
-
-      // Moving the mount to the default position:
-      moveToPosition(DEFAULT_POSITION, log).catch(log.error);
+      }
+      await this.updateInputs();
     });
   }
 
-  configureAccessory(accessory: PlatformAccessory): void {
-    this.log('Configuring accessory', accessory.displayName);
-    const position = this.positionByName.get(accessory.displayName)!;
+  async configureAccessory(accessory: PlatformAccessory): Promise<void> {
+    this.log.info('ConfigureAccessory');
+    this.tvAccessory = accessory;
+    const tvService = accessory.getService(this.hap.Service.Television);
 
-    accessory.on(PlatformAccessoryEvent.IDENTIFY, () => {
-      this.log(accessory.displayName, ' identified!');
-    });
-    accessory
-      .getService(this.hap.Service.Switch)!
-      .getCharacteristic(this.hap.Characteristic.On)
-      .on(
-        CharacteristicEventTypes.GET,
-        (callback: CharacteristicGetCallback) => {
-          isPositioned(position, this.log)
-            .then((positioned) => {
-              this.log(
-                '[configureAccessory] Position read is',
-                positioned,
-                'for',
-                accessory.displayName,
-              );
-              callback(undefined, positioned);
-            })
-            .catch((err) => {
-              this.log.error(err);
-              callback(err);
-            });
-        },
-      )
-      .on(
-        CharacteristicEventTypes.SET,
-        (value: CharacteristicValue, callback: CharacteristicSetCallback) => {
-          this.log.info(
-            `[configureAccessory] Switch state was set to:`,
-            value,
-            'for',
-            accessory.displayName,
+    if (!tvService) {
+      this.log.warn('[configureAccessory] No tv service found');
+      return;
+    }
+
+    tvService
+      .getCharacteristic(this.hap.Characteristic.Active)
+      .on('set', async (active: number, callback: Function) => {
+        if (!active) {
+          await moveToPosition(WALL_POSITION, this.log);
+          tvService.updateCharacteristic(
+            this.hap.Characteristic.ActiveIdentifier,
+            0,
           );
-          moveToPosition(value ? position : DEFAULT_OFF_POSITION, this.log)
-            .then(() => {
-              callback();
-              Array.from(this.accessoryByDisplayName.values()).forEach(
-                (platformAccessory: PlatformAccessory): void => {
-                  if (platformAccessory.displayName !== accessory.displayName)
-                    platformAccessory
-                      .getService(this.hap.Service.Switch)!
-                      .getCharacteristic(this.hap.Characteristic.On)
-                      .updateValue(false);
-                },
-              );
-            })
-            .catch((err) => {
-              this.log.error(err);
-              callback(err);
-            });
-        },
-      );
+        }
+        callback(null);
+      });
 
-    this.accessoryByDisplayName.set(accessory.displayName, accessory);
+    tvService
+      .getCharacteristic(this.hap.Characteristic.ActiveIdentifier)
+      .on('set', async (index: number, callback: Function) => {
+        await moveToPosition(
+          this.tvAccessory.context.positionPresets[index],
+          this.log,
+        );
+        callback(null);
+      });
+  }
+
+  private async createTvAccessory(
+    displayName: string,
+  ): Promise<PlatformAccessory> {
+    // Accessory config
+    const tvAccessory = new Accessory(
+      displayName,
+      this.hap.uuid.generate('homebridge:vogels-motionmount'),
+    );
+    tvAccessory.category = Categories.TELEVISION;
+
+    // TV service
+    const tvService = tvAccessory.addService(this.hap.Service.Television);
+    tvService.setCharacteristic(
+      this.hap.Characteristic.ConfiguredName,
+      displayName,
+    );
+    tvService.setCharacteristic(
+      this.hap.Characteristic.SleepDiscoveryMode,
+      this.hap.Characteristic.SleepDiscoveryMode.ALWAYS_DISCOVERABLE,
+    );
+
+    return tvAccessory;
+  }
+
+  private arePositionPresetsUnchanged(
+    positionPresets: PositionPreset[],
+  ): boolean {
+    const lastKnownPositionPresets: PositionPreset[] =
+      this.tvAccessory.context.positionPresets || [];
+    return (
+      lastKnownPositionPresets.length === positionPresets.length &&
+      !lastKnownPositionPresets.some(
+        ({ label, hexPosition }, index) =>
+          positionPresets[index].label !== label ||
+          positionPresets[index].hexPosition !== hexPosition,
+      )
+    );
+  }
+
+  private async updateInputs(): Promise<PositionPreset[]> {
+    const tvService = this.tvAccessory.getService(this.hap.Service.Television);
+    if (!tvService) throw new Error('Missing TV service');
+
+    const positionPresets: PositionPreset[] = await retrievePositionPresets(
+      this.log,
+    );
+
+    if (this.arePositionPresetsUnchanged(positionPresets)) {
+      this.log.info('[updateInputs] position presets unchanged');
+      return positionPresets;
+    }
+
+    this.log.info('[updateInputs] Nuking all inputs');
+    // Nuke presets
+    this.tvAccessory.services
+      .filter(({ displayName }) => !!displayName)
+      .forEach((service) => this.tvAccessory.removeService(service));
+
+    positionPresets.forEach(({ label }, index) => {
+      this.log.info('[updateInputs] Adding input for preset', label);
+      const inputService = this.tvAccessory.addService(
+        this.hap.Service.InputSource,
+        label.toLowerCase(),
+        label,
+      );
+      inputService
+        .setCharacteristic(this.hap.Characteristic.Identifier, index)
+        .setCharacteristic(this.hap.Characteristic.ConfiguredName, label)
+        .setCharacteristic(
+          this.hap.Characteristic.IsConfigured,
+          this.hap.Characteristic.IsConfigured.CONFIGURED,
+        )
+        .setCharacteristic(
+          this.hap.Characteristic.InputSourceType,
+          this.hap.Characteristic.InputSourceType.OTHER,
+        );
+
+      tvService.addLinkedService(inputService);
+    });
+
+    this.tvAccessory.context.positionPresets = positionPresets;
+    return positionPresets;
   }
 }
