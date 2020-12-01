@@ -52,13 +52,13 @@ export default class MotionMountDynamicPlatform
 
   async configureAccessory(accessory: PlatformAccessory): Promise<void> {
     this.log.info('ConfigureAccessory');
-    this.tvAccessory = accessory;
     const tvService = accessory.getService(this.hap.Service.Television);
-
     if (!tvService) {
-      this.log.warn('[configureAccessory] No tv service found');
+      this.log.warn('[configureAccessory] Not a tv accessory');
       return;
     }
+
+    this.tvAccessory = accessory;
 
     tvService
       .getCharacteristic(this.hap.Characteristic.Active)
