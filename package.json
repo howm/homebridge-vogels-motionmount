@@ -1,6 +1,6 @@
 {
   "name": "homebridge-vogels-motionmount",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "main": "src/index.ts",
   "repository": "git@github.com:howm/homebridge-vogels-motionmount.git",
   "author": "howm",
