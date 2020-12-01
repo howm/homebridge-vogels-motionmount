@@ -35,7 +35,7 @@ Like many others I encountered disconnection issues with the builtin bluetooth o
 
 `v1.x.x` is not backward compatible with `v0.x.x`. Last versions use a TV accessory where `v0.x.x` use switches.
 
-Upgrading from `v0.x.x` to `v1.x.x` require to remove the `~/.homebridge/persist` (or `Menu -> Help -> Reset Connection` with Hoobs).
+Prior to `v1.1.0` upgrading from `v0.x.x` to `v1.x.x` require to remove the `~/.homebridge/persist` (or `Menu -> Help -> Reset Connection` with Hoobs).
 
 ### Release
 
