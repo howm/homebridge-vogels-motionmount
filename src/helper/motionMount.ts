@@ -95,6 +95,10 @@ export async function retrievePositionPresets(
   const {
     characteristics,
   } = await peripheral.discoverAllServicesAndCharacteristicsAsync();
+  // Omitting `2a00-2a05` retrieved by some devices
+  const normalizedCharacteristics = characteristics.filter(({ uuid }) =>
+    uuid.startsWith('c005fa'),
+  );
 
   const positionPresets: PositionPreset[] = [WALL_POSITION];
   // Characteristics (#10-19 + #23-32) are the first part of the preset (+ 13 offset for the 2nd part)
@@ -107,8 +111,8 @@ export async function retrievePositionPresets(
     index += 1
   ) {
     const [presetPartOne, presetPartTwo] = await Promise.all([
-      characteristics[index].readAsync(),
-      characteristics[index + presetIndexOffset].readAsync(),
+      normalizedCharacteristics[index].readAsync(),
+      normalizedCharacteristics[index + presetIndexOffset].readAsync(),
     ]);
     const presetHex =
       presetPartOne.toString('hex') + presetPartTwo.toString('hex');
