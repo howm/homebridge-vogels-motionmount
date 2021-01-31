@@ -315,9 +315,9 @@
     eslint-plugin-react-hooks "^2.5.0"
 
 "@boilerz/prettier-config@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@boilerz/prettier-config/-/prettier-config-1.0.0.tgz#5fbbc39512390c2f91bf16f0568c601f93d6fdd7"
-  integrity sha512-mM5neNrNdV79wRFFuKutFBAV56ndIGf1CjB66DUtz7pizHStuFxMtnJgGvHDQEKotCxt3F1L1jEtPh72EUEUZg==
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/@boilerz/prettier-config/-/prettier-config-1.0.3.tgz#d84d0a3facee432c3f765bbf47d464e08a567dba"
+  integrity sha512-BkQQVCVM6jMA3lkkcpoK1SxNn8s839uBqDLHXlA3qFCEX6mpn/A1IqFPgSyOrz5N/0kgToxdKJ4z7joCZr9yoA==
 
 "@boilerz/tsconfig@^1.3.0":
   version "1.3.0"
