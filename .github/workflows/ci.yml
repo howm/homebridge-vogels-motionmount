@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - "**"
+
+jobs:
+  build:
+    if: "!contains(github.event.head_commit.message, ':bookmark:')"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.GH_BOILERZ_BOT_TOKEN }}
+
+      - name: Import GPG key
+        uses: crazy-max/ghaction-import-gpg@v3
+        with:
+          gpg-private-key: ${{ secrets.GH_BOILERZ_BOT_GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GH_BOILERZ_BOT_GPG_PASSPHRASE }}
+          git-user-signingkey: true
+          git-commit-gpgsign: true
+
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '12.x'
+
+      - uses: actions/cache@v2
+        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Install packages
+        if: steps.yarn-cache.outputs.cache-hit != 'true' # Check cache
+        run: yarn
+
+      - name: Build output
+        run: yarn build
+
+      - uses: boilerz/action-release@master
+        if: github.ref == 'refs/heads/master'
+        with:
+          publishDirectory: 'dist'
+          buildStep: 'true'
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_BOILERZ_BOT_TOKEN }}

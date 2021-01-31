@@ -1,6 +1,7 @@
 # homebridge-vogels-motionmount
 
 [![GitHub package.json version](https://img.shields.io/github/package-json/v/howm/homebridge-vogels-motionmount)](https://www.npmjs.com/package/@howm/homebridge-vogels-motionmount)
+[![GH CI Action](https://github.com/howm/homebridge-vogels-motionmount/workflows/CI/badge.svg)](https://github.com/howm/homebridge-vogels-motionmount/actions?query=workflow:CI)
 
 > Unofficial Homebridge plugin for a basic support of Vogel's motion mount. This plugin will add a Television with inputs corresponding to the position presets stored on the mount with the official app.
 
