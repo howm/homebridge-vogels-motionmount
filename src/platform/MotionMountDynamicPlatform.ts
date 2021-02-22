@@ -7,6 +7,9 @@ import {
   DynamicPlatformPlugin,
   APIEvent,
   PlatformConfig,
+  Service,
+  CharacteristicValue,
+  CharacteristicSetCallback,
 } from 'homebridge';
 import {
   retrievePositionPresets,
@@ -62,26 +65,45 @@ export default class MotionMountDynamicPlatform
 
     tvService
       .getCharacteristic(this.hap.Characteristic.Active)
-      .on('set', async (active: number, callback: Function) => {
-        if (!active) {
-          await moveToPosition(WALL_POSITION, this.log);
-          tvService.updateCharacteristic(
-            this.hap.Characteristic.ActiveIdentifier,
-            0,
-          );
-        }
-        callback(null);
-      });
+      // .on('set', (active: number, callback: Function) => {
+      .on(
+        'set',
+        (
+          active: CharacteristicValue,
+          callback: CharacteristicSetCallback,
+        ): void => {
+          if (!active) {
+            callback(null);
+            return;
+          }
+          this.moveToWall(tvService, callback);
+        },
+      );
 
     tvService
       .getCharacteristic(this.hap.Characteristic.ActiveIdentifier)
-      .on('set', async (index: number, callback: Function) => {
-        await moveToPosition(
-          this.tvAccessory.context.positionPresets[index],
-          this.log,
-        );
-        callback(null);
-      });
+      .on(
+        'set',
+        async (
+          index: CharacteristicValue,
+          callback: CharacteristicSetCallback,
+        ) => {
+          await moveToPosition(
+            this.tvAccessory.context.positionPresets[index as number],
+            this.log,
+          );
+          callback(null);
+        },
+      );
+  }
+
+  private async moveToWall(
+    tvService: Service,
+    callback: Function,
+  ): Promise<void> {
+    await moveToPosition(WALL_POSITION, this.log);
+    tvService.updateCharacteristic(this.hap.Characteristic.ActiveIdentifier, 0);
+    callback(null);
   }
 
   private async createTvAccessory(

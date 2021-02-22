@@ -1,6 +1,7 @@
 {
-  "extends": "@boilerz/tsconfig",
+  "extends": "@boilerz/tsconfig-production",
   "compilerOptions": {
+    "importHelpers": false,
     "strictPropertyInitialization": false
   }
 }
