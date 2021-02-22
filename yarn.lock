@@ -60,10 +60,13 @@
   dependencies:
     regenerator-runtime "^0.13.2"
 
-"@boilerz/build-tools@^1.4.0":
-  version "1.4.8"
-  resolved "https://registry.yarnpkg.com/@boilerz/build-tools/-/build-tools-1.4.8.tgz#494bc83ea1254e8575f52c667616b9d5a391b086"
-  integrity sha512-wjEc53n0EycRkqLP+J+GeF/3eTyPq+gzkyhNoGUQ9L3Vvlq9xR0mhe9F/shWFBU2ImEisBfX83av4TVdXp+QYQ==
+"@boilerz/build-tools@^1.5.1", "@boilerz/build-tools@^1.5.2":
+  version "1.5.2"
+  resolved "https://registry.yarnpkg.com/@boilerz/build-tools/-/build-tools-1.5.2.tgz#b1278f89b8f5b22069ada8329160a73b6f2df43e"
+  integrity sha512-Qk1qGwOaoQGTGbSs9MCevO2dIsGZ8y8TVBe+RG7gM4k5+nT4JIZCbFcXgxWLw8/Rx9/w3VHpxll3F/vhPWelLw==
+  dependencies:
+    "@boilerz/build-tools" "^1.5.1"
+    lodash.omit "^4.5.0"
 
 "@boilerz/eslint-config@^1.11.1":
   version "1.11.1"
@@ -1677,6 +1680,11 @@ locate-path@^2.0.0:
   dependencies:
     p-locate "^2.0.0"
     path-exists "^3.0.0"
+
+lodash.omit@^4.5.0:
+  version "4.5.0"
+  resolved "https://registry.yarnpkg.com/lodash.omit/-/lodash.omit-4.5.0.tgz#6eb19ae5a1ee1dd9df0b969e66ce0b7fa30b5e60"
+  integrity sha1-brGa5aHuHdnfC5aeZs4Lf6MLXmA=
 
 lodash@^4.17.14, lodash@^4.17.15:
   version "4.17.19"
