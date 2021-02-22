@@ -13,7 +13,7 @@ jobs:
       - name: Cancel Previous Runs
         uses: styfle/cancel-workflow-action@0.7.0
         with:
-          access_token: ${{ secrets.GH_BOILERZ_BOT_TOKEN }}    
+          access_token: ${{ secrets.GH_BOILERZ_BOT_TOKEN }}
 
       - uses: actions/checkout@v2
         with:
@@ -29,7 +29,7 @@ jobs:
 
       - uses: actions/setup-node@v2
         with:
-          node-version: '12.x'
+          node-version: '14.x'
 
       - uses: actions/cache@v2
         id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
