@@ -65,14 +65,13 @@ export default class MotionMountDynamicPlatform
 
     tvService
       .getCharacteristic(this.hap.Characteristic.Active)
-      // .on('set', (active: number, callback: Function) => {
       .on(
         'set',
         (
           active: CharacteristicValue,
           callback: CharacteristicSetCallback,
         ): void => {
-          if (!active) {
+          if (active) {
             callback(null);
             return;
           }
