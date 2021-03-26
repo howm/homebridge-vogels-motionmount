@@ -28,7 +28,7 @@
     "@boilerz/prettier-config": "^1.0.4",
     "@boilerz/tsconfig": "^1.4.8",
     "@boilerz/tsconfig-production": "^1.4.8",
-    "@types/jest": "^26.0.21",
+    "@types/jest": "^26.0.22",
     "@types/lodash.padstart": "^4.6.6",
     "@types/noble": "^0.0.40",
     "codecov": "^3.7.1",
