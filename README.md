@@ -28,6 +28,12 @@ Position presets are retrieved at the startup:
  
  ![Alt text](screens/motionmount-app.png?raw=true "Motion mount official app") ![Alt text](screens/tv-accessory.png?raw=true "TV accessory")
  
+### Legal
+
+Vogels is a registered trademarks of Vogel's Products S.A.R.L.
+
+This project is in no way affiliated with, authorized, maintained, sponsored or endorsed by Vogels or any of its affiliates or subsidiaries.
+
 ### Raspberry PI bluetooth connection issues
 
 Like many others I encountered disconnection issues with the builtin bluetooth of raspberry Pi 3/4 (@see [noble/issues/465](https://github.com/noble/noble/issues/465) and [abandonware/noble/issues/99](https://github.com/abandonware/noble/issues/99) for eg). If you use this device with an external bluetooth device do not forget to set `NOBLE_HCI_DEVICE_ID` env var accordingly (more at https://github.com/abandonware/noble#multiple-adapters-linux-specific).  
