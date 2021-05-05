@@ -31,7 +31,7 @@
     "@types/jest": "^26.0.23",
     "@types/lodash.padstart": "^4.6.6",
     "@types/noble": "^0.0.40",
-    "codecov": "^3.7.1",
+    "codecov": "^3.8.2",
     "eslint": "^6.8.0",
     "homebridge": "^1.1.6",
     "prettier": "^2.0.5",
