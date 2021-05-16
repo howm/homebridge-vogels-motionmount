@@ -92,9 +92,8 @@ export async function retrievePositionPresets(
 ): Promise<PositionPreset[]> {
   log.info('[retrievedStoredPositions] Starting the retrieval');
   const peripheral = await getPeripheral(log);
-  const {
-    characteristics,
-  } = await peripheral.discoverAllServicesAndCharacteristicsAsync();
+  const { characteristics } =
+    await peripheral.discoverAllServicesAndCharacteristicsAsync();
   // Omitting `2a00-2a05` retrieved by some devices
   const normalizedCharacteristics = characteristics.filter(({ uuid }) =>
     uuid.startsWith('c005fa'),

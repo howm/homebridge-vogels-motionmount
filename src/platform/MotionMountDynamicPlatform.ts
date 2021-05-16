@@ -24,7 +24,8 @@ export const PLATFORM_NAME = 'MotionMountDynamicPlatform';
 let Accessory: typeof PlatformAccessory;
 
 export default class MotionMountDynamicPlatform
-  implements DynamicPlatformPlugin {
+  implements DynamicPlatformPlugin
+{
   private readonly log: Logging;
 
   private readonly api: API;
