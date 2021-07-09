@@ -88,10 +88,10 @@
   resolved "https://registry.yarnpkg.com/@boilerz/prettier-config/-/prettier-config-1.0.4.tgz#0afda4c9b48a2e7f58aefe14145e272364307cc8"
   integrity sha512-+/O8QSjpqunRuQ4dMAx4vuIZWy8q/76KPrR8UzSo1KAu3/qjo5IpoicncbNoVS4ZM4ZEKQsozRa4HL/nZ0xBsw==
 
-"@boilerz/tsconfig-production@^1.4.11":
-  version "1.4.11"
-  resolved "https://registry.yarnpkg.com/@boilerz/tsconfig-production/-/tsconfig-production-1.4.11.tgz#ec3c446e7a22b40fdc281db9cd8b1f7582d3b3ef"
-  integrity sha512-uQJPXfY/0V5M5PPoTtLYiMqugQiFAO9NXIEjwKdHKwHLFyVUrfynCN0uJ+VTq4FKxG8GjVahHOBz2Vlo69V09A==
+"@boilerz/tsconfig-production@^1.4.12":
+  version "1.4.12"
+  resolved "https://registry.yarnpkg.com/@boilerz/tsconfig-production/-/tsconfig-production-1.4.12.tgz#2f52a8ce079e0c27d7be6472549622f985271cbb"
+  integrity sha512-/xlMUyVVaj7UHosX/k4CMFuAyCnzM4y7S6ENi6qr2HcGtzMQhk1CM7ji4HdbYOa6I9dxfcd6Dw/JhTdpE9f9Ug==
   dependencies:
     "@tsconfig/node14" "^1.0.0"
 
