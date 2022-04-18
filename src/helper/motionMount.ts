@@ -83,7 +83,7 @@ export async function moveToPosition(
       true,
     );
   } catch (err) {
-    log.error('[moveToPosition]', err.message);
+    log.error('[moveToPosition]', (err as Error).message);
   }
 }
 
