@@ -94,10 +94,10 @@
   dependencies:
     "@tsconfig/node14" "^1.0.0"
 
-"@boilerz/tsconfig@^1.4.13":
-  version "1.4.13"
-  resolved "https://registry.yarnpkg.com/@boilerz/tsconfig/-/tsconfig-1.4.13.tgz#c18d10f2caf080139778b296b985fe0b655c9e08"
-  integrity sha512-onT8Bdty1Xq1GvwtugkOBVtP+HOkbisu/49zcgRGIULPq2sSz4g7zIOLzzGV4R06mhaO+kM1n8J4Y+jFGE0jkw==
+"@boilerz/tsconfig@^1.4.14":
+  version "1.4.14"
+  resolved "https://registry.yarnpkg.com/@boilerz/tsconfig/-/tsconfig-1.4.14.tgz#1b7763455de3201e4dfe97488e327d1efe1c05e3"
+  integrity sha512-DDfOd9TR59WM5yBbUdBctj2h3I8sIQIYKpmdPl3mnN/stxUWQIKalXf3B6dpcvQyFlZGzh6KsO+vsvR3ucFQxQ==
   dependencies:
     "@tsconfig/node14" "^1.0.0"
 
