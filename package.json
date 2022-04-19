@@ -30,7 +30,7 @@
     "@boilerz/tsconfig-production": "^1.4.14",
     "@types/jest": "^27.4.1",
     "@types/lodash.padstart": "^4.6.6",
-    "@types/noble": "^0.0.40",
+    "@types/noble": "^0.0.41",
     "codecov": "^3.8.3",
     "eslint": "^6.8.0",
     "homebridge": "^1.4.0",
