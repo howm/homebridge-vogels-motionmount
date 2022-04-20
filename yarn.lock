@@ -187,10 +187,10 @@
   resolved "https://registry.yarnpkg.com/@types/json5/-/json5-0.0.29.tgz#ee28707ae94e11d2b827bcbe5270bcea7f3e71ee"
   integrity sha1-7ihweulOEdK4J7y+UnC86n8+ce4=
 
-"@types/lodash.padstart@^4.6.6":
-  version "4.6.6"
-  resolved "https://registry.yarnpkg.com/@types/lodash.padstart/-/lodash.padstart-4.6.6.tgz#da751d913340740c4768d67b4589ee11fafc4135"
-  integrity sha512-2XCnWzDkCgagKcDKZjhahVJpZFJIGUMkcvm8KV73INEzKgAZCVwT8ifGNijtQhoe/CMkBLxmMW31TmQGGcpebg==
+"@types/lodash.padstart@^4.6.7":
+  version "4.6.7"
+  resolved "https://registry.yarnpkg.com/@types/lodash.padstart/-/lodash.padstart-4.6.7.tgz#92872a8373e5086eb9fb922faa63c65617cb629f"
+  integrity sha512-yosV4WINGoITfj4wrblw1wIGOKrqWmLK0+ZSSQCkRW0zDS7xSWgzXoJ7CY6Y5BKaW0HmgFxz8D9nS1I6o4W7DA==
   dependencies:
     "@types/lodash" "*"
 
