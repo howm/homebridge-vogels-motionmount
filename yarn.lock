@@ -87,12 +87,12 @@
   resolved "https://registry.yarnpkg.com/@boilerz/prettier-config/-/prettier-config-1.0.4.tgz#0afda4c9b48a2e7f58aefe14145e272364307cc8"
   integrity sha512-+/O8QSjpqunRuQ4dMAx4vuIZWy8q/76KPrR8UzSo1KAu3/qjo5IpoicncbNoVS4ZM4ZEKQsozRa4HL/nZ0xBsw==
 
-"@boilerz/tsconfig-production@^1.4.14":
-  version "1.4.14"
-  resolved "https://registry.yarnpkg.com/@boilerz/tsconfig-production/-/tsconfig-production-1.4.14.tgz#49c9817ac129fc0390dbd9add21b85f0f3f9db25"
-  integrity sha512-sYVeQjJ2fftYJbfQj8dCHw5hSKwe1Hg9AE9/1r4QRE/Apijxe4WhmWjzF6Nx0ppPy+kSSQj/My/uh1FVg4P3ZQ==
+"@boilerz/tsconfig-production@^1.4.15":
+  version "1.4.15"
+  resolved "https://registry.yarnpkg.com/@boilerz/tsconfig-production/-/tsconfig-production-1.4.15.tgz#53bcb34b8a9345864942335909dc6b62f2e68146"
+  integrity sha512-x9IAuJDyXF/wWG4ZedjWZATq2ztF/pxyCaPy6MZANeAHdpVNc1yZRlqX0SNVToF0GYzT1WpBiV6IgSbP9SjpRQ==
   dependencies:
-    "@tsconfig/node14" "^1.0.0"
+    "@tsconfig/node16" "^1.0.2"
 
 "@boilerz/tsconfig@^1.4.14":
   version "1.4.14"
@@ -158,6 +158,11 @@
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@tsconfig/node14/-/node14-1.0.0.tgz#5bd046e508b1ee90bc091766758838741fdefd6e"
   integrity sha512-RKkL8eTdPv6t5EHgFKIVQgsDapugbuOptNd9OOunN/HAkzmmTnZELx1kNCK0rSdUYGmiFMM3rRQMAWiyp023LQ==
+
+"@tsconfig/node16@^1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@tsconfig/node16/-/node16-1.0.2.tgz#423c77877d0569db20e1fc80885ac4118314010e"
+  integrity sha512-eZxlbI8GZscaGS7kkc/trHTT5xgrjH3/1n2JDwusC9iahPKWMRvRjJSAN5mCXviuTGQ/lHnhvv8Q1YTpnfz9gA==
 
 "@types/color-name@^1.1.1":
   version "1.1.1"
