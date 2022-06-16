@@ -23,7 +23,7 @@
     "codecov": "codecov"
   },
   "devDependencies": {
-    "@boilerz/build-tools": "^1.5.23",
+    "@boilerz/build-tools": "^1.5.24",
     "@boilerz/eslint-config": "^1.12.0",
     "@boilerz/prettier-config": "^1.0.4",
     "@boilerz/tsconfig": "^1.4.15",
