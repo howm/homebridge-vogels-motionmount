@@ -59,10 +59,10 @@
   dependencies:
     regenerator-runtime "^0.13.4"
 
-"@boilerz/build-tools@^1.5.1", "@boilerz/build-tools@^1.5.35":
-  version "1.5.35"
-  resolved "https://registry.yarnpkg.com/@boilerz/build-tools/-/build-tools-1.5.35.tgz#9c5875bdb79ed7114c47da70e31f3a023068735e"
-  integrity sha512-pYdQTanfqNsyYR/javGRAe0jd7fJRTmBRg64jykyNxgw34+IEx5uQ8UwC0dBKjwftH1sBVoJ09ZZhudIACD9SQ==
+"@boilerz/build-tools@^1.5.1", "@boilerz/build-tools@^1.5.36":
+  version "1.5.36"
+  resolved "https://registry.yarnpkg.com/@boilerz/build-tools/-/build-tools-1.5.36.tgz#3d02f8c19aeb828ef5ea7e270b77f46f6567b591"
+  integrity sha512-Wx8V6uUE1FfRrIQkJ8KZpR5fDhvzyff7tWwt+OSvJMBPq04r/b+ZZ6Dky/u9onMql7q+fD+RseYKuxWWaw1gSQ==
   dependencies:
     "@boilerz/build-tools" "^1.5.1"
     lodash.omit "^4.5.0"
