@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@abandonware/bluetooth-hci-socket@^0.5.3-8":
-  version "0.5.3-8"
-  resolved "https://registry.yarnpkg.com/@abandonware/bluetooth-hci-socket/-/bluetooth-hci-socket-0.5.3-8.tgz#070198e43d13a1a851a79016a96009b4d31e8bfb"
-  integrity sha512-JIUkTZpAo6vKyXd94OasynjnmAxgCvn3VRrQJM/KXBKbm/yW59BMK6ni1wLy/JLM4eFhsLkd2S907HJnXBSWKw==
+"@abandonware/bluetooth-hci-socket@^0.5.3-9":
+  version "0.5.3-9"
+  resolved "https://registry.yarnpkg.com/@abandonware/bluetooth-hci-socket/-/bluetooth-hci-socket-0.5.3-9.tgz#2270693b80af84345ea83a28566b8f9ffe811211"
+  integrity sha512-8K84mS7ONrvvx/3MNmI6EchQF4L61c7Dk817oTS5Zb/ivtNyfHRARMKcuoVJLCK+u0Fl1VdgX7EubNwFNJo61Q==
   dependencies:
     "@mapbox/node-pre-gyp" "^1.0.5"
     debug "^4.3.2"
@@ -13,17 +13,17 @@
   optionalDependencies:
     usb "^1.7.2"
 
-"@abandonware/noble@^1.9.2-17":
-  version "1.9.2-17"
-  resolved "https://registry.yarnpkg.com/@abandonware/noble/-/noble-1.9.2-17.tgz#2f9af8549b2c788e5f6b4963af46fcd00b18e2ff"
-  integrity sha512-NyKUuMXmNt8c5Nlbe96Taa7dQVCz9Zr3NbmCCXpZn71uz6p5eg6eg2tfkPkH6Pwzexz+vF/5npiEE2fpJux3Jg==
+"@abandonware/noble@^1.9.2-18":
+  version "1.9.2-18"
+  resolved "https://registry.yarnpkg.com/@abandonware/noble/-/noble-1.9.2-18.tgz#c8919b0981bb66ab32502a727cdc1824a2fb3607"
+  integrity sha512-/BC5q549qnonQoSzoWsn8sXQBdX8mytu7E4EclQs0226bQY3c3+wAbFs+SH0bMdD4/nHYmKP+8y6/VMWacTW9g==
   dependencies:
     debug "^4.3.1"
     napi-thread-safe-callback "^0.0.6"
     node-addon-api "^4.2.0"
     node-gyp-build "^4.3.0"
   optionalDependencies:
-    "@abandonware/bluetooth-hci-socket" "^0.5.3-8"
+    "@abandonware/bluetooth-hci-socket" "^0.5.3-9"
 
 "@babel/code-frame@^7.0.0":
   version "7.8.3"
