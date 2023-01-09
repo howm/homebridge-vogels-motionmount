@@ -117,10 +117,10 @@
   dependencies:
     "@tsconfig/node16" "^1.0.2"
 
-"@boilerz/tsconfig@^1.4.16":
-  version "1.4.16"
-  resolved "https://registry.yarnpkg.com/@boilerz/tsconfig/-/tsconfig-1.4.16.tgz#205e306e949a3240cf9433fd3b4efb03d754cbdc"
-  integrity sha512-o30qxVu6BuJzsT3vglsnlTzM3ECbQ1Gl0PaPXU9L1AXzjhe7sy2LFdQQctaCG/EkJs90pAGp6EA7Ypa/WFoGmg==
+"@boilerz/tsconfig@^1.4.17":
+  version "1.4.17"
+  resolved "https://registry.yarnpkg.com/@boilerz/tsconfig/-/tsconfig-1.4.17.tgz#5cacaaa56331445f79c9386fe799a0125e23ed48"
+  integrity sha512-KwZlRPzcQ16P0Qxzz171mIioKsWACAk/pg1xspyV1TtNUTtbkElNS0J4OwQzQjMQdXuRwjE76tEkvsQG0qO8Tw==
   dependencies:
     "@tsconfig/node16" "^1.0.2"
 
