@@ -26,7 +26,7 @@
     "@boilerz/build-tools": "^1.5.113",
     "@boilerz/eslint-config": "^1.12.0",
     "@boilerz/prettier-config": "^1.0.4",
-    "@boilerz/tsconfig": "^1.4.18",
+    "@boilerz/tsconfig": "^1.4.19",
     "@boilerz/tsconfig-production": "^1.4.19",
     "@types/jest": "^29.5.3",
     "@types/lodash.padstart": "^4.6.7",
