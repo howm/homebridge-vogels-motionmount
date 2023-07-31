@@ -13,10 +13,10 @@
   optionalDependencies:
     usb "^1.9.2"
 
-"@abandonware/noble@^1.9.2-22":
-  version "1.9.2-22"
-  resolved "https://registry.yarnpkg.com/@abandonware/noble/-/noble-1.9.2-22.tgz#c7b9ed4f948ec13fd3c7354dc79096693012c41b"
-  integrity sha512-rGol5yS8Tk93IJdAmmoB5FsxN4JHfyToIR37sWJgkENtnOUI8thITaSB/bY+t2ODMr4P95X+/zSZiBKsQaffhw==
+"@abandonware/noble@^1.9.2-23":
+  version "1.9.2-23"
+  resolved "https://registry.yarnpkg.com/@abandonware/noble/-/noble-1.9.2-23.tgz#d21cac243f815c7d6bf8e0d63379ddb33e6859cb"
+  integrity sha512-BPb/a2s+t6SIZRU4oNfY61cPM91/+dH0t8Ulb4QpQ1zBfKtR+n4r/r6j+vPcnAOiQ5hWC2lDj+Mc/iiZPAYLRw==
   dependencies:
     debug "^4.3.4"
     napi-thread-safe-callback "^0.0.6"
