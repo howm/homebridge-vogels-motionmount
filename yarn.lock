@@ -277,10 +277,10 @@
   resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.157.tgz#fdac1c52448861dfde1a2e1515dbc46e54926dc8"
   integrity sha512-Ft5BNFmv2pHDgxV5JDsndOWTRJ+56zte0ZpYLowp03tW+K+t8u8YMOzAnpuqPgzX6WO1XpDIUm7u04M8vdDiVQ==
 
-"@types/noble@^0.0.41":
-  version "0.0.41"
-  resolved "https://registry.yarnpkg.com/@types/noble/-/noble-0.0.41.tgz#1e451c9d11e77b1a5bdfbe9bb64b5758a46eb979"
-  integrity sha512-KINnzZnkdX7DvjrlsO3/C5FEtvxgyC4Kg2LCS0PNpRo2T7XiNLrHXbOswr8WTnLUPmDyFILvmKA22u2jGus2Gg==
+"@types/noble@^0.0.42":
+  version "0.0.42"
+  resolved "https://registry.yarnpkg.com/@types/noble/-/noble-0.0.42.tgz#451566971169b23a7e929378a705c79f01079f71"
+  integrity sha512-DcpdzEhI3RLGlzPCJPUSZXHe4TQj3N6xuz3zodTgNAsKDy1ASJicNbHCURbU8+9NM6YJO3FBYQOxAQzzlhkZ3Q==
   dependencies:
     "@types/node" "*"
 
