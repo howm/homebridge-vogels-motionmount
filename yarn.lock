@@ -14,10 +14,10 @@
   optionalDependencies:
     usb "^2.11.0"
 
-"@abandonware/noble@^1.9.2-24":
-  version "1.9.2-24"
-  resolved "https://registry.yarnpkg.com/@abandonware/noble/-/noble-1.9.2-24.tgz#9638823fd00c0b4fecbb6e9c216423d35b06dd67"
-  integrity sha512-9kP3DWP1IxuG5PYjz4rqGXl3u6JIu654iibR6Teasgk5UsdH9nkTi2teYuUl54yoOz6vjgXNjofwXp3naJvhfQ==
+"@abandonware/noble@^1.9.2-25":
+  version "1.9.2-25"
+  resolved "https://registry.yarnpkg.com/@abandonware/noble/-/noble-1.9.2-25.tgz#0efdd421f7f92ca578873bbd8fc72142f0a402a6"
+  integrity sha512-FBgwjWkXF3VLb0V0hdOeeVhuupdfuagkBz9E0Xjfmr8MYuR5JjnXHty0/6Q38d4v//EhX7oZaZXBiZWrhWKKbg==
   dependencies:
     debug "^4.3.4"
     napi-thread-safe-callback "^0.0.6"
@@ -3043,7 +3043,16 @@ stream-events@^1.0.5:
   dependencies:
     stubs "^3.0.0"
 
-"string-width-cjs@npm:string-width@^4.2.0", "string-width@^1.0.2 || 2 || 3 || 4", string-width@^4.2.3:
+"string-width-cjs@npm:string-width@^4.2.0":
+  version "4.2.3"
+  resolved "https://registry.yarnpkg.com/string-width/-/string-width-4.2.3.tgz#269c7117d27b05ad2e536830a8ec895ef9c6d010"
+  integrity sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==
+  dependencies:
+    emoji-regex "^8.0.0"
+    is-fullwidth-code-point "^3.0.0"
+    strip-ansi "^6.0.1"
+
+"string-width@^1.0.2 || 2 || 3 || 4", string-width@^4.2.3:
   version "4.2.3"
   resolved "https://registry.yarnpkg.com/string-width/-/string-width-4.2.3.tgz#269c7117d27b05ad2e536830a8ec895ef9c6d010"
   integrity sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==
@@ -3166,7 +3175,7 @@ string_decoder@^1.1.1:
   dependencies:
     safe-buffer "~5.2.0"
 
-"strip-ansi-cjs@npm:strip-ansi@^6.0.1", strip-ansi@^6.0.1:
+"strip-ansi-cjs@npm:strip-ansi@^6.0.1":
   version "6.0.1"
   resolved "https://registry.yarnpkg.com/strip-ansi/-/strip-ansi-6.0.1.tgz#9e26c63d30f53443e9489495b2105d37b67a85d9"
   integrity sha512-Y38VPSHcqkFrCpFnQ9vuSXmquuv5oXOKpGeT6aGrr3o3Gc9AlVa6JBfUSOCnbxGGZF+/0ooI7KrPuUSztUdU5A==
@@ -3186,6 +3195,13 @@ strip-ansi@^6.0.0:
   integrity sha512-AuvKTrTfQNYNIctbR1K/YGTR1756GycPsg7b9bdV9Duqur4gv6aKqHXah67Z8ImS7WEz5QVcOtlfW2rZEugt6w==
   dependencies:
     ansi-regex "^5.0.0"
+
+strip-ansi@^6.0.1:
+  version "6.0.1"
+  resolved "https://registry.yarnpkg.com/strip-ansi/-/strip-ansi-6.0.1.tgz#9e26c63d30f53443e9489495b2105d37b67a85d9"
+  integrity sha512-Y38VPSHcqkFrCpFnQ9vuSXmquuv5oXOKpGeT6aGrr3o3Gc9AlVa6JBfUSOCnbxGGZF+/0ooI7KrPuUSztUdU5A==
+  dependencies:
+    ansi-regex "^5.0.1"
 
 strip-ansi@^7.0.1:
   version "7.1.0"
