@@ -36,6 +36,11 @@ export const WALL_POSITION: PositionPreset = {
   hexPosition: '00000000',
 };
 
+let mountQueue: Promise<unknown> = Promise.resolve();
+// Only the last position asked for matters: the ones queued behind it would
+// drive the mount somewhere the user has already moved on from.
+let requestedPreset: PositionPreset | null = null;
+
 let peripheralInstance: Peripheral | null;
 // The disconnect handler clears `peripheralInstance` on its own, which would
 // leave the cleanup below with nothing to work on. Keep the last peripheral we
@@ -236,6 +241,23 @@ async function getPeripheral(log: Logging): Promise<Peripheral> {
   return peripheralInstance;
 }
 
+/**
+ * Run one conversation with the mount at a time.
+ *
+ * Concurrent calls trample each other: the scan listener is global, so one scan
+ * unregisters another's, and an operation releasing the connection pulls it
+ * from under its neighbour. Nothing is gained by overlapping them either — a
+ * single radio talks to a single mount.
+ */
+function serialise<T>(action: () => Promise<T>): Promise<T> {
+  const result = mountQueue.then(action, action);
+  mountQueue = result.then(
+    () => undefined,
+    () => undefined,
+  );
+  return result;
+}
+
 async function withRetry<T>(
   label: string,
   log: Logging,
@@ -312,14 +334,24 @@ export async function moveToPosition(
   positionPreset: PositionPreset,
   log: Logging,
 ): Promise<void> {
-  log.info('[moveToPosition] Going to', positionPreset.label);
-  try {
-    await withRetry('moveToPosition', log, () =>
-      writePosition(positionPreset, log),
-    );
-  } finally {
-    await releasePeripheral(log, 'Move done, releasing the connection');
-  }
+  requestedPreset = positionPreset;
+  log.info('[moveToPosition] Requested', positionPreset.label);
+
+  return serialise(async () => {
+    const target = requestedPreset;
+    requestedPreset = null;
+    if (!target) {
+      log.info('[moveToPosition] Superseded by a newer request, skipping');
+      return;
+    }
+
+    log.info('[moveToPosition] Going to', target.label);
+    try {
+      await withRetry('moveToPosition', log, () => writePosition(target, log));
+    } finally {
+      await releasePeripheral(log, 'Move done, releasing the connection');
+    }
+  });
 }
 
 async function readPositionPresets(log: Logging): Promise<PositionPreset[]> {
@@ -375,11 +407,13 @@ export async function retrievePositionPresets(
   log: Logging,
 ): Promise<PositionPreset[]> {
   log.info('[retrievedStoredPositions] Starting the retrieval');
-  try {
-    return await withRetry('retrievedStoredPositions', log, () =>
-      readPositionPresets(log),
-    );
-  } finally {
-    await releasePeripheral(log, 'Presets read, releasing the connection');
-  }
+  return serialise(async () => {
+    try {
+      return await withRetry('retrievedStoredPositions', log, () =>
+        readPositionPresets(log),
+      );
+    } finally {
+      await releasePeripheral(log, 'Presets read, releasing the connection');
+    }
+  });
 }

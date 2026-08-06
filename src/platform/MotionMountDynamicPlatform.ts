@@ -77,45 +77,38 @@ export default class MotionMountDynamicPlatform implements DynamicPlatformPlugin
   private bindTvServiceHandlers(tvService: Service): void {
     tvService
       .getCharacteristic(this.hap.Characteristic.Active)
-      .onSet(async (active: CharacteristicValue): Promise<void> => {
+      .onSet((active: CharacteristicValue): void => {
         if (active) return;
-        await this.reportingFailureToHomeKit('[setActive]', () =>
-          this.moveToWall(tvService),
-        );
+        this.drive('[setActive]', () => this.moveToWall(tvService));
       });
 
     tvService
       .getCharacteristic(this.hap.Characteristic.ActiveIdentifier)
-      .onSet(async (index: CharacteristicValue): Promise<void> => {
+      .onSet((index: CharacteristicValue): void => {
         const positionPresets = this.tvAccessory?.context.positionPresets ?? [];
         const positionPreset = positionPresets[index as number];
         if (!positionPreset) {
           this.log.warn('[setActiveIdentifier] Unknown position preset', index);
           return;
         }
-        await this.reportingFailureToHomeKit('[setActiveIdentifier]', () =>
+        this.drive('[setActiveIdentifier]', () =>
           moveToPosition(positionPreset, this.log),
         );
       });
   }
 
   /**
-   * A Bluetooth move can fail for reasons the user can act on (mount out of
-   * range, adapter busy). Surface it in HomeKit instead of acknowledging a move
-   * that never happened.
+   * Acknowledge HomeKit straight away and drive the mount afterwards.
+   *
+   * Reaching a mount at the edge of Bluetooth range takes the best part of a
+   * minute, far longer than HomeKit waits for a write. Holding the request open
+   * only makes HomeKit give up, call it a failure and send the command again,
+   * piling up requests the mount cannot serve. Failures go to the log instead.
    */
-  private async reportingFailureToHomeKit(
-    context: string,
-    action: () => Promise<void>,
-  ): Promise<void> {
-    try {
-      await action();
-    } catch (err) {
+  private drive(context: string, action: () => Promise<void>): void {
+    void action().catch((err: unknown) => {
       this.log.error(context, err instanceof Error ? err.message : String(err));
-      throw new this.hap.HapStatusError(
-        this.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE,
-      );
-    }
+    });
   }
 
   private async moveToWall(tvService: Service): Promise<void> {
