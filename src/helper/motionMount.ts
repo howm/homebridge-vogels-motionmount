@@ -169,16 +169,24 @@ function forgetInNoble(peripheral: Peripheral): void {
 }
 
 /**
- * Forget the cached peripheral so the next call rediscovers from scratch.
- * Disconnecting is best effort: the link is usually already gone by then.
+ * Let go of the connection so the next call starts from a fresh discovery.
+ * Disconnecting is best effort: the link is often already gone by then.
+ *
+ * Nothing is gained by holding it. The plugin only ever talks to the mount to
+ * answer a command, and the mount drops the link on its own shortly after it
+ * starts moving, so a cached connection is a dead one by the time the next
+ * command arrives: every command observed reusing one spent 13 to 29 seconds
+ * discovering a link that no longer existed before reconnecting anyway. A move
+ * carries on unattended once the write is acknowledged, so releasing right
+ * after costs nothing and lets the mount advertise again immediately.
  */
-async function resetPeripheral(log: Logging): Promise<void> {
+async function releasePeripheral(log: Logging, reason: string): Promise<void> {
   const peripheral = peripheralInstance ?? lastPeripheral;
   peripheralInstance = null;
   lastPeripheral = null;
   if (!peripheral) return;
 
-  log.info('[resetPeripheral] Dropping the cached peripheral');
+  log.info('[releasePeripheral]', reason);
   // Disconnecting one that is already down just hangs until the timeout.
   if (peripheral.state !== 'disconnected') {
     try {
@@ -188,7 +196,7 @@ async function resetPeripheral(log: Logging): Promise<void> {
         'Disconnect',
       );
     } catch (err) {
-      log.warn('[resetPeripheral] Failed to disconnect', toError(err).message);
+      log.warn('[releasePeripheral] Failed to disconnect', toError(err).message);
     }
   }
   forgetInNoble(peripheral);
@@ -199,8 +207,10 @@ async function getPeripheral(log: Logging): Promise<Peripheral> {
     log.info('[getPeripheral] Detecting peripheral ...');
     const peripheral = await detectFirstMotionMountPeripheral(log);
     peripheral.once('disconnect', () => {
+      // Stay quiet when we are the ones who just let go of it.
+      if (peripheralInstance !== peripheral) return;
       log.info('[getPeripheral] Peripheral disconnected, dropping it');
-      if (peripheralInstance === peripheral) peripheralInstance = null;
+      peripheralInstance = null;
     });
     peripheralInstance = peripheral;
     lastPeripheral = peripheral;
@@ -245,7 +255,7 @@ async function withRetry<T>(
       // Whatever failed, the link can no longer be trusted: start the next
       // attempt from a fresh discovery rather than piling requests onto a
       // half-dead connection.
-      await resetPeripheral(log);
+      await releasePeripheral(log, 'Dropping the connection after a failure');
       if (attempt < MAX_ATTEMPTS) {
         log.info(`[${label}] Retrying with a fresh connection`);
         await delay(RETRY_DELAY_MS);
@@ -303,9 +313,13 @@ export async function moveToPosition(
   log: Logging,
 ): Promise<void> {
   log.info('[moveToPosition] Going to', positionPreset.label);
-  await withRetry('moveToPosition', log, () =>
-    writePosition(positionPreset, log),
-  );
+  try {
+    await withRetry('moveToPosition', log, () =>
+      writePosition(positionPreset, log),
+    );
+  } finally {
+    await releasePeripheral(log, 'Move done, releasing the connection');
+  }
 }
 
 async function readPositionPresets(log: Logging): Promise<PositionPreset[]> {
@@ -361,7 +375,11 @@ export async function retrievePositionPresets(
   log: Logging,
 ): Promise<PositionPreset[]> {
   log.info('[retrievedStoredPositions] Starting the retrieval');
-  return withRetry('retrievedStoredPositions', log, () =>
-    readPositionPresets(log),
-  );
+  try {
+    return await withRetry('retrievedStoredPositions', log, () =>
+      readPositionPresets(log),
+    );
+  } finally {
+    await releasePeripheral(log, 'Presets read, releasing the connection');
+  }
 }
