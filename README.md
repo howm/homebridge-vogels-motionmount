@@ -8,7 +8,7 @@
 ### Install
 
 ```bash
-npm install -g homebridge-vogels-motionmount 
+npm install -g homebridge-vogels-motionmount
 ```
 
 ### Usage
@@ -23,11 +23,11 @@ In your `~/.homebridge/config.json` on the platform part add your the config usi
 ```
 
 - `name` is optional (default to `MotionMount`)
- 
-Position presets are retrieved at the startup: 
- 
- ![Alt text](screens/motionmount-app.png?raw=true "Motion mount official app") ![Alt text](screens/tv-accessory.png?raw=true "TV accessory")
- 
+
+Position presets are retrieved at the startup:
+
+![Alt text](screens/motionmount-app.png?raw=true 'Motion mount official app') ![Alt text](screens/tv-accessory.png?raw=true 'TV accessory')
+
 ### Legal
 
 Vogels is a registered trademarks of Vogel's Products S.A.R.L.
@@ -36,18 +36,37 @@ This project is in no way affiliated with, authorized, maintained, sponsored or 
 
 ### Raspberry PI bluetooth connection issues
 
-Like many others I encountered disconnection issues with the builtin bluetooth of raspberry Pi 3/4 (@see [noble/issues/465](https://github.com/noble/noble/issues/465) and [abandonware/noble/issues/99](https://github.com/abandonware/noble/issues/99) for eg). If you use this device with an external bluetooth device do not forget to set `NOBLE_HCI_DEVICE_ID` env var accordingly (more at https://github.com/abandonware/noble#multiple-adapters-linux-specific).  
+Like many others I encountered disconnection issues with the builtin bluetooth of raspberry Pi 3/4 (@see [noble/issues/465](https://github.com/noble/noble/issues/465) and [abandonware/noble/issues/99](https://github.com/abandonware/noble/issues/99) for eg). If you use this device with an external bluetooth device do not forget to set `NOBLE_HCI_DEVICE_ID` env var accordingly (more at https://github.com/abandonware/noble#multiple-adapters-linux-specific).
 
 ### Breaking changes
+
+`v2.x.x` requires Homebridge `^2.0.0` and Node.js `^22` or `^24`. Stay on `v1.2.0` if you are still running Homebridge 1.x.
 
 `v1.x.x` is not backward compatible with `v0.x.x`. Last versions use a TV accessory where `v0.x.x` use switches.
 
 Prior to `v1.1.0` upgrading from `v0.x.x` to `v1.x.x` require to remove the `~/.homebridge/persist` (or `Menu -> Help -> Reset Connection` with Hoobs).
 
-### Release
+### Requirements
+
+- Node.js `^22` or `^24`
+- Homebridge `^2.0.0`
+
+### Development
+
+This project uses [pnpm](https://pnpm.io).
 
 ```bash
-yarn version
-yarn build
-yarn publish dist --access public
+pnpm install
+pnpm typecheck
+pnpm lint
+pnpm build
+```
+
+### Release
+
+Tagging a `v*` commit triggers the `Release` workflow, which builds and publishes to npm.
+
+```bash
+pnpm version <major|minor|patch>
+git push --follow-tags
 ```

@@ -17,26 +17,37 @@ export const WALL_POSITION: PositionPreset = {
 
 let peripheralInstance: Peripheral | null;
 
+function toError(err: unknown): Error {
+  return err instanceof Error ? err : new Error(String(err));
+}
+
 export async function detectFirstMotionMountPeripheral(
   log: Logging,
 ): Promise<Peripheral> {
   log.info('[detectFirstMotionMountPeripheral] Removing discover listeners');
   noble.removeAllListeners('discover');
 
-  return new Promise((resolve, reject) => {
-    noble.on('discover', async (peripheral: Peripheral) => {
+  return new Promise<Peripheral>((resolve, reject) => {
+    noble.on('discover', (peripheral: Peripheral) => {
       log.info(
         '[detectFirstMotionMountPeripheral] Peripheral discovered, stopping scan',
       );
-      await noble.stopScanningAsync();
-      resolve(peripheral);
+      noble
+        .stopScanningAsync()
+        .catch((err: unknown) =>
+          log.warn(
+            '[detectFirstMotionMountPeripheral] Failed to stop scan',
+            toError(err).message,
+          ),
+        )
+        .finally(() => resolve(peripheral));
     });
     log.info('[detectFirstMotionMountPeripheral] Starting scan');
     noble
       .startScanningAsync([MOTION_MOUNT_SERVICE_UUID], false)
-      .catch((err) => {
+      .catch((err: unknown) => {
         log.error('[detectFirstMotionMountPeripheral] scan failure');
-        reject(err);
+        reject(toError(err));
       });
   });
 }
@@ -83,7 +94,7 @@ export async function moveToPosition(
       true,
     );
   } catch (err) {
-    log.error('[moveToPosition]', (err as Error).message);
+    log.error('[moveToPosition]', toError(err).message);
   }
 }
 
@@ -117,10 +128,10 @@ export async function retrievePositionPresets(
       presetPartOne.toString('hex') + presetPartTwo.toString('hex');
 
     // First two chars for active/inactive preset (01: active, 00: inactive)
-    if (presetHex.substr(0, 2) === '01') {
+    if (presetHex.slice(0, 2) === '01') {
       positionPresets.push({
         // 2-9 chars contain the position (2-5 hex signed wall distance and 6-9 hex signed orientation)
-        hexPosition: presetHex.substr(2, 8),
+        hexPosition: presetHex.slice(2, 10),
         // 10-end contain the utf8 preset label
         label: Buffer.from(presetHex.substring(10), 'hex').toString('utf8'),
       });

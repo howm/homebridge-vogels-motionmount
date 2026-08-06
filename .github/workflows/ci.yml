@@ -2,37 +2,36 @@ name: CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
-    branches: [ master ]
+    branches: [master]
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: ['22.x', '24.x']
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v2
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
         with:
-          node-version: '14.x'
+          node-version: ${{ matrix.node-version }}
+          cache: pnpm
 
-      - uses: actions/cache@v2
-        id: yarn-cache
-        with:
-          path: '**/node_modules'
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
-
+      # `--ignore-scripts` skips the @abandonware/noble native build, which is
+      # not needed to typecheck, lint or transpile.
       - name: Install packages 📦
-        if: steps.yarn-cache.outputs.cache-hit != 'true'
-        run: yarn
+        run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Typecheck 🏷
-        run: yarn typecheck
+        run: pnpm typecheck
 
       - name: Lint 👓
-        run: yarn lint
+        run: pnpm lint
 
       - name: Build output 🛠
-        run: yarn build
+        run: pnpm build

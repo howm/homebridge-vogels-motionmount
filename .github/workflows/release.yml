@@ -9,30 +9,27 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v2
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
         with:
-          node-version: '14.x'
+          node-version: '22.x'
+          registry-url: 'https://registry.npmjs.org'
+          cache: pnpm
 
-      - uses: actions/cache@v2
-        id: yarn-cache
-        with:
-          path: '**/node_modules'
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
+      - name: Install packages 📦
+        run: pnpm install --frozen-lockfile --ignore-scripts
 
-      - name: Install packages
-        if: steps.yarn-cache.outputs.cache-hit != 'true'
-        run: yarn
+      - name: Build output 🛠
+        run: pnpm build
 
-      - uses: boilerz/action-release@master
-        with:
-          publishDirectory: 'dist'
-          buildStep: 'true'
-          publishToGithub: 'false'
+      - name: Publish to npm 🚀
+        run: npm publish --provenance --access public --ignore-scripts
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GH_BOILERZ_BOT_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

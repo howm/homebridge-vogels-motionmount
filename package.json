@@ -1,7 +1,8 @@
 {
   "name": "homebridge-vogels-motionmount",
-  "version": "1.1.9",
-  "main": "src/index.ts",
+  "version": "2.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "repository": "git@github.com:howm/homebridge-vogels-motionmount.git",
   "author": "howm",
   "description": "Homebridge plugin that support Vogel's motion mount",
@@ -10,40 +11,44 @@
   "keywords": [
     "homebridge-plugin"
   ],
+  "files": [
+    "dist"
+  ],
   "engines": {
-    "node": ">=8.0.0",
-    "homebridge": ">=0.4.0"
+    "node": "^22 || ^24",
+    "homebridge": "^2.0.0"
   },
+  "packageManager": "pnpm@10.10.0",
   "scripts": {
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
-    "typecheck": "tsc",
-    "build": "buildTSPackage",
-    "build:watch": "tsc --watch",
-    "test": "jest --coverage",
-    "codecov": "codecov"
+    "clean": "rm -rf dist",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "typecheck": "tsc --noEmit",
+    "build": "pnpm clean && tsc --project tsconfig.build.json",
+    "build:watch": "tsc --project tsconfig.build.json --watch",
+    "prepublishOnly": "pnpm build"
   },
   "devDependencies": {
-    "@boilerz/build-tools": "^1.5.124",
-    "@boilerz/eslint-config": "^1.12.0",
-    "@boilerz/prettier-config": "^1.0.4",
-    "@boilerz/tsconfig": "^1.4.19",
-    "@boilerz/tsconfig-production": "^1.4.19",
-    "@types/jest": "^29.5.12",
-    "@types/lodash.padstart": "^4.6.9",
-    "@types/noble": "^0.0.44",
-    "codecov": "^3.8.3",
-    "eslint": "^6.8.0",
-    "homebridge": "^1.6.1",
-    "prettier": "^2.8.8",
-    "typescript": "^4.9.5"
-  },
-  "resolutions": {
-    "homebridge/hap-nodejs/@homebridge/dbus-native/optimist/minimist": "^1.2.5"
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^26.1.2",
+    "eslint": "^10.8.0",
+    "eslint-config-prettier": "^10.1.8",
+    "homebridge": "^2.2.1",
+    "node-gyp": "^13.0.1",
+    "prettier": "^3.9.6",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.66.0"
   },
   "peerDependencies": {
-    "homebridge": "^1.1.1"
+    "homebridge": "^2.0.0"
   },
   "dependencies": {
-    "@abandonware/noble": "^1.9.2-25"
+    "@abandonware/noble": "^1.9.2-26"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@abandonware/bluetooth-hci-socket",
+      "@abandonware/noble"
+    ]
   }
 }

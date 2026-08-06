@@ -9,7 +9,6 @@ import {
   PlatformConfig,
   Service,
   CharacteristicValue,
-  CharacteristicSetCallback,
 } from 'homebridge';
 import {
   retrievePositionPresets,
@@ -21,40 +20,32 @@ import {
 export const PLUGIN_NAME = 'homebridge-vogels-motionmount';
 export const PLATFORM_NAME = 'MotionMountDynamicPlatform';
 
-let Accessory: typeof PlatformAccessory;
+type MotionMountContext = {
+  positionPresets?: PositionPreset[];
+};
 
-export default class MotionMountDynamicPlatform
-  implements DynamicPlatformPlugin
-{
+type MotionMountAccessory = PlatformAccessory<MotionMountContext>;
+
+export default class MotionMountDynamicPlatform implements DynamicPlatformPlugin {
   private readonly log: Logging;
 
   private readonly api: API;
 
   private readonly hap: HAP;
 
-  private tvAccessory: PlatformAccessory;
+  private tvAccessory?: MotionMountAccessory;
 
   constructor(log: Logging, config: PlatformConfig, api: API) {
     this.log = log;
     this.api = api;
     this.hap = api.hap;
 
-    Accessory = api.platformAccessory;
-
-    this.api.on(APIEvent.DID_FINISH_LAUNCHING, async () => {
-      if (!this.tvAccessory) {
-        this.tvAccessory = await this.createTvAccessory(
-          config.name || 'MotionMount',
-        );
-        this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [
-          this.tvAccessory,
-        ]);
-      }
-      await this.updateInputs();
+    this.api.on(APIEvent.DID_FINISH_LAUNCHING, () => {
+      void this.onDidFinishLaunching(config.name ?? 'MotionMount');
     });
   }
 
-  async configureAccessory(accessory: PlatformAccessory): Promise<void> {
+  configureAccessory(accessory: PlatformAccessory): void {
     this.log.info('ConfigureAccessory');
     const tvService = accessory.getService(this.hap.Service.Television);
     if (!tvService) {
@@ -63,54 +54,55 @@ export default class MotionMountDynamicPlatform
     }
 
     this.tvAccessory = accessory;
+    this.bindTvServiceHandlers(tvService);
+  }
 
+  private async onDidFinishLaunching(displayName: string): Promise<void> {
+    try {
+      if (!this.tvAccessory) {
+        this.tvAccessory = this.createTvAccessory(displayName);
+        this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [
+          this.tvAccessory,
+        ]);
+      }
+      await this.updateInputs();
+    } catch (err) {
+      this.log.error(
+        '[didFinishLaunching]',
+        err instanceof Error ? err.message : String(err),
+      );
+    }
+  }
+
+  private bindTvServiceHandlers(tvService: Service): void {
     tvService
       .getCharacteristic(this.hap.Characteristic.Active)
-      .on(
-        'set',
-        (
-          active: CharacteristicValue,
-          callback: CharacteristicSetCallback,
-        ): void => {
-          if (active) {
-            callback(null);
-            return;
-          }
-          this.moveToWall(tvService, callback);
-        },
-      );
+      .onSet(async (active: CharacteristicValue): Promise<void> => {
+        if (active) return;
+        await this.moveToWall(tvService);
+      });
 
     tvService
       .getCharacteristic(this.hap.Characteristic.ActiveIdentifier)
-      .on(
-        'set',
-        async (
-          index: CharacteristicValue,
-          callback: CharacteristicSetCallback,
-        ) => {
-          await moveToPosition(
-            this.tvAccessory.context.positionPresets[index as number],
-            this.log,
-          );
-          callback(null);
-        },
-      );
+      .onSet(async (index: CharacteristicValue): Promise<void> => {
+        const positionPresets = this.tvAccessory?.context.positionPresets ?? [];
+        const positionPreset = positionPresets[index as number];
+        if (!positionPreset) {
+          this.log.warn('[setActiveIdentifier] Unknown position preset', index);
+          return;
+        }
+        await moveToPosition(positionPreset, this.log);
+      });
   }
 
-  private async moveToWall(
-    tvService: Service,
-    callback: Function,
-  ): Promise<void> {
+  private async moveToWall(tvService: Service): Promise<void> {
     await moveToPosition(WALL_POSITION, this.log);
     tvService.updateCharacteristic(this.hap.Characteristic.ActiveIdentifier, 0);
-    callback(null);
   }
 
-  private async createTvAccessory(
-    displayName: string,
-  ): Promise<PlatformAccessory> {
+  private createTvAccessory(displayName: string): MotionMountAccessory {
     // Accessory config
-    const tvAccessory = new Accessory(
+    const tvAccessory: MotionMountAccessory = new this.api.platformAccessory(
       displayName,
       this.hap.uuid.generate('homebridge:vogels-motionmount'),
     );
@@ -126,6 +118,7 @@ export default class MotionMountDynamicPlatform
       this.hap.Characteristic.SleepDiscoveryMode,
       this.hap.Characteristic.SleepDiscoveryMode.ALWAYS_DISCOVERABLE,
     );
+    this.bindTvServiceHandlers(tvService);
 
     return tvAccessory;
   }
@@ -134,7 +127,7 @@ export default class MotionMountDynamicPlatform
     positionPresets: PositionPreset[],
   ): boolean {
     const lastKnownPositionPresets: PositionPreset[] =
-      this.tvAccessory.context.positionPresets || [];
+      this.tvAccessory?.context.positionPresets ?? [];
     return (
       lastKnownPositionPresets.length === positionPresets.length &&
       !lastKnownPositionPresets.some(
@@ -146,7 +139,10 @@ export default class MotionMountDynamicPlatform
   }
 
   private async updateInputs(): Promise<PositionPreset[]> {
-    const tvService = this.tvAccessory.getService(this.hap.Service.Television);
+    const tvAccessory = this.tvAccessory;
+    if (!tvAccessory) throw new Error('Missing TV accessory');
+
+    const tvService = tvAccessory.getService(this.hap.Service.Television);
     if (!tvService) throw new Error('Missing TV service');
 
     const positionPresets: PositionPreset[] = await retrievePositionPresets(
@@ -160,13 +156,13 @@ export default class MotionMountDynamicPlatform
 
     this.log.info('[updateInputs] Nuking all inputs');
     // Nuke presets
-    this.tvAccessory.services
+    tvAccessory.services
       .filter(({ displayName }) => !!displayName)
-      .forEach((service) => this.tvAccessory.removeService(service));
+      .forEach((service) => tvAccessory.removeService(service));
 
     positionPresets.forEach(({ label }, index) => {
       this.log.info('[updateInputs] Adding input for preset', label);
-      const inputService = this.tvAccessory.addService(
+      const inputService = tvAccessory.addService(
         this.hap.Service.InputSource,
         label.toLowerCase(),
         label,
@@ -186,7 +182,7 @@ export default class MotionMountDynamicPlatform
       tvService.addLinkedService(inputService);
     });
 
-    this.tvAccessory.context.positionPresets = positionPresets;
+    tvAccessory.context.positionPresets = positionPresets;
     return positionPresets;
   }
 }
