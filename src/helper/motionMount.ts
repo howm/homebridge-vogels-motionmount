@@ -26,6 +26,18 @@ const WRITE_TIMEOUT_MS = 30_000;
 const MAX_ATTEMPTS = 2;
 const RETRY_DELAY_MS = 5_000;
 
+// noble asks for a 420ms supervision timeout, which tears the link down as soon
+// as a fraction of a second of packets goes missing — routine at the edge of
+// range, where an HCI trace showed the mount dropping the moment discovery
+// started. Ask for 4s instead (the field counts 10ms units), comfortably above
+// the 45ms floor implied by noble's connection interval. Linux only: the macOS
+// binding negotiates its own parameters and ignores these.
+const CONNECTION_PARAMETERS = { timeout: 400 };
+
+type ConnectWithParameters = (
+  parameters?: Record<string, number>,
+) => Promise<void>;
+
 export interface PositionPreset {
   label: string;
   hexPosition: string;
@@ -117,7 +129,7 @@ async function stopScanning(log: Logging): Promise<void> {
 export async function detectFirstMotionMountPeripheral(
   log: Logging,
 ): Promise<Peripheral> {
-  log.info('[detectFirstMotionMountPeripheral] Removing discover listeners');
+  log.debug('[detectFirstMotionMountPeripheral] Removing discover listeners');
   noble.removeAllListeners('discover');
 
   const discovery = new Promise<Peripheral>((resolve, reject) => {
@@ -127,7 +139,7 @@ export async function detectFirstMotionMountPeripheral(
       );
       void stopScanning(log).finally(() => resolve(peripheral));
     });
-    log.info('[detectFirstMotionMountPeripheral] Starting scan');
+    log.debug('[detectFirstMotionMountPeripheral] Starting scan');
     noble
       .startScanningAsync([MOTION_MOUNT_SERVICE_UUID], false)
       .catch((err: unknown) => {
@@ -191,7 +203,7 @@ async function releasePeripheral(log: Logging, reason: string): Promise<void> {
   lastPeripheral = null;
   if (!peripheral) return;
 
-  log.info('[releasePeripheral]', reason);
+  log.debug('[releasePeripheral]', reason);
   // Disconnecting one that is already down just hangs until the timeout.
   if (peripheral.state !== 'disconnected') {
     try {
@@ -201,7 +213,10 @@ async function releasePeripheral(log: Logging, reason: string): Promise<void> {
         'Disconnect',
       );
     } catch (err) {
-      log.warn('[releasePeripheral] Failed to disconnect', toError(err).message);
+      log.warn(
+        '[releasePeripheral] Failed to disconnect',
+        toError(err).message,
+      );
     }
   }
   forgetInNoble(peripheral);
@@ -209,7 +224,7 @@ async function releasePeripheral(log: Logging, reason: string): Promise<void> {
 
 async function getPeripheral(log: Logging): Promise<Peripheral> {
   if (!peripheralInstance) {
-    log.info('[getPeripheral] Detecting peripheral ...');
+    log.debug('[getPeripheral] Detecting peripheral ...');
     const peripheral = await detectFirstMotionMountPeripheral(log);
     peripheral.once('disconnect', () => {
       // Stay quiet when we are the ones who just let go of it.
@@ -219,18 +234,22 @@ async function getPeripheral(log: Logging): Promise<Peripheral> {
     });
     peripheralInstance = peripheral;
     lastPeripheral = peripheral;
-    log.info('[getPeripheral] Peripheral detected');
+    log.debug('[getPeripheral] Peripheral detected');
   }
 
   if (peripheralInstance.state === 'connected') {
-    log.info('[getPeripheral] Already connected, returning as is');
+    log.debug('[getPeripheral] Already connected, returning as is');
     return peripheralInstance;
   }
 
-  log.info('[getPeripheral] Connecting ...');
+  log.debug('[getPeripheral] Connecting ...');
+  // `connectAsync` does forward connection parameters, it is only the bundled
+  // types that stop at the no-argument form.
+  const connect: ConnectWithParameters =
+    peripheralInstance.connectAsync.bind(peripheralInstance);
   await whileLinkHolds(
     peripheralInstance,
-    peripheralInstance.connectAsync(),
+    connect(CONNECTION_PARAMETERS),
     CONNECT_TIMEOUT_MS,
     'Connect',
   );
@@ -294,7 +313,7 @@ async function writePosition(
 ): Promise<void> {
   const peripheral = await getPeripheral(log);
 
-  log.info('[moveToPosition] Getting characteristics ...');
+  log.debug('[moveToPosition] Getting characteristics ...');
   const { characteristics } = await whileLinkHolds(
     peripheral,
     peripheral.discoverSomeServicesAndCharacteristicsAsync(
@@ -406,7 +425,7 @@ async function readPositionPresets(log: Logging): Promise<PositionPreset[]> {
 export async function retrievePositionPresets(
   log: Logging,
 ): Promise<PositionPreset[]> {
-  log.info('[retrievedStoredPositions] Starting the retrieval');
+  log.debug('[retrievedStoredPositions] Starting the retrieval');
   return serialise(async () => {
     try {
       return await withRetry('retrievedStoredPositions', log, () =>
