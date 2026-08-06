@@ -79,7 +79,9 @@ export default class MotionMountDynamicPlatform implements DynamicPlatformPlugin
       .getCharacteristic(this.hap.Characteristic.Active)
       .onSet(async (active: CharacteristicValue): Promise<void> => {
         if (active) return;
-        await this.moveToWall(tvService);
+        await this.reportingFailureToHomeKit('[setActive]', () =>
+          this.moveToWall(tvService),
+        );
       });
 
     tvService
@@ -91,8 +93,29 @@ export default class MotionMountDynamicPlatform implements DynamicPlatformPlugin
           this.log.warn('[setActiveIdentifier] Unknown position preset', index);
           return;
         }
-        await moveToPosition(positionPreset, this.log);
+        await this.reportingFailureToHomeKit('[setActiveIdentifier]', () =>
+          moveToPosition(positionPreset, this.log),
+        );
       });
+  }
+
+  /**
+   * A Bluetooth move can fail for reasons the user can act on (mount out of
+   * range, adapter busy). Surface it in HomeKit instead of acknowledging a move
+   * that never happened.
+   */
+  private async reportingFailureToHomeKit(
+    context: string,
+    action: () => Promise<void>,
+  ): Promise<void> {
+    try {
+      await action();
+    } catch (err) {
+      this.log.error(context, err instanceof Error ? err.message : String(err));
+      throw new this.hap.HapStatusError(
+        this.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE,
+      );
+    }
   }
 
   private async moveToWall(tvService: Service): Promise<void> {
