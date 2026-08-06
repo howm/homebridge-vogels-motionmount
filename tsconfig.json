@@ -1,6 +1,26 @@
 {
-  "extends": "@boilerz/tsconfig",
   "compilerOptions": {
-    "strictPropertyInitialization": false
-  }
+    "target": "es2022",
+    "lib": ["es2022"],
+    "module": "node20",
+    "moduleResolution": "nodenext",
+    "outDir": "dist",
+    "rootDir": "src",
+
+    "declaration": true,
+    "sourceMap": true,
+
+    "strict": true,
+    "strictPropertyInitialization": false,
+    "noImplicitOverride": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true
+  },
+  "include": ["src/**/*.ts"]
 }
