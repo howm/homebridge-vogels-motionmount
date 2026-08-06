@@ -82,16 +82,28 @@ export async function moveToPosition(
 
   try {
     log.info('[moveToPosition] Getting characteristics ...');
-    const {
-      characteristics: [setPositionCharacteristic],
-    } = await peripheral.discoverSomeServicesAndCharacteristicsAsync(
-      [],
-      [MOTION_MOUNT_SET_POSITION_CHARACTERISTIC_UUID],
-    );
+    const { characteristics } =
+      await peripheral.discoverSomeServicesAndCharacteristicsAsync(
+        [],
+        [MOTION_MOUNT_SET_POSITION_CHARACTERISTIC_UUID],
+      );
 
+    // The macOS binding ignores the characteristic filter and returns the whole
+    // service, so never rely on the returned order: match the uuid explicitly.
+    const setPositionCharacteristic = characteristics.find(
+      ({ uuid }) => uuid === MOTION_MOUNT_SET_POSITION_CHARACTERISTIC_UUID,
+    );
+    if (!setPositionCharacteristic) {
+      throw new Error(
+        `Characteristic ${MOTION_MOUNT_SET_POSITION_CHARACTERISTIC_UUID} not found`,
+      );
+    }
+
+    // The characteristic only advertises `write` (with response); writing it
+    // without response is silently dropped by CoreBluetooth on macOS.
     await setPositionCharacteristic.writeAsync(
       Buffer.from(positionPreset.hexPosition, 'hex'),
-      true,
+      false,
     );
   } catch (err) {
     log.error('[moveToPosition]', toError(err).message);
