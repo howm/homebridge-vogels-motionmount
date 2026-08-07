@@ -34,6 +34,43 @@ const RETRY_DELAY_MS = 5_000;
 // binding negotiates its own parameters and ignores these.
 const CONNECTION_PARAMETERS = { timeout: 400 };
 
+// Setting HCI_CHANNEL_USER hands the adapter to noble and cuts BlueZ out of the
+// path, which takes the connect from ~42s to ~0.2s (measured on a Pi against a
+// mount at -90 dBm). On its own it also makes every GATT operation fail, and
+// the reason is a gap in noble 1.9.2-26 rather than a weak link: only the
+// raw-socket init (`pollIsDevUp`) asks the controller for its ACL buffer size.
+// The user-channel init runs a shorter sequence off the HCI reset that omits
+// `readLeBufferSize()`, so the promise `writeAclDataPkt()` awaits is never
+// resolved and every ATT PDU is swallowed before it reaches the socket. The
+// link connects, then sits idle until the mount hangs up ~46s later and the
+// operation reports "the mount disconnected".
+//
+// Ask for the buffer size ourselves once the adapter is up. Idempotent, and
+// scoped to the user channel: on the raw path noble has already asked, and on
+// macOS there is no HCI socket to ask through.
+type NobleHciInternals = {
+  _state?: string;
+  _bindings?: { _hci?: { readLeBufferSize?: () => void } };
+};
+
+function primeAclBuffers(): void {
+  (noble as unknown as NobleHciInternals)._bindings?._hci?.readLeBufferSize?.();
+}
+
+if (process.env.HCI_CHANNEL_USER) {
+  // The listener below is registered at import time, long before the adapter
+  // finishes coming up, so it normally does the work. Cover the case where
+  // noble is somehow already up and no further stateChange is coming.
+  if ((noble as unknown as NobleHciInternals)._state === 'poweredOn') {
+    primeAclBuffers();
+  }
+  noble.on('stateChange', (state: string) => {
+    if (state === 'poweredOn') {
+      primeAclBuffers();
+    }
+  });
+}
+
 type ConnectWithParameters = (
   parameters?: Record<string, number>,
 ) => Promise<void>;
