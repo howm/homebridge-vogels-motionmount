@@ -5,6 +5,39 @@ const MOTION_MOUNT_SERVICE_UUID = '3e6fe65ded7811e4895e00026fd5c52c';
 const MOTION_MOUNT_SET_POSITION_CHARACTERISTIC_UUID =
   'c005fa2106514800b000000000000000';
 
+// noble never times out on its own, so a request issued over a dead link hangs
+// forever and wedges every later call. These bounds exist to break that
+// deadlock, not to enforce responsiveness: a mount sitting at the edge of range
+// (a Raspberry Pi a few rooms away reports around -85 dBm) routinely needs 40s
+// just to connect, so they are deliberately loose. The scan is the loosest of
+// all: after a link dies the mount only advertises again once it notices, which
+// can take its whole supervision timeout, so a brief scan would miss a mount
+// that is about to come back.
+const SCAN_TIMEOUT_MS = 60_000;
+const CONNECT_TIMEOUT_MS = 90_000;
+const DISCONNECT_TIMEOUT_MS = 10_000;
+const DISCOVER_TIMEOUT_MS = 60_000;
+const READ_TIMEOUT_MS = 30_000;
+const WRITE_TIMEOUT_MS = 30_000;
+
+// A weak link drops mid-operation often enough that giving up on the first
+// failure loses moves the mount would happily have accepted a few seconds
+// later. Retry once, from a fresh discovery, after letting it advertise again.
+const MAX_ATTEMPTS = 2;
+const RETRY_DELAY_MS = 5_000;
+
+// noble asks for a 420ms supervision timeout, which tears the link down as soon
+// as a fraction of a second of packets goes missing — routine at the edge of
+// range, where an HCI trace showed the mount dropping the moment discovery
+// started. Ask for 4s instead (the field counts 10ms units), comfortably above
+// the 45ms floor implied by noble's connection interval. Linux only: the macOS
+// binding negotiates its own parameters and ignores these.
+const CONNECTION_PARAMETERS = { timeout: 400 };
+
+type ConnectWithParameters = (
+  parameters?: Record<string, number>,
+) => Promise<void>;
+
 export interface PositionPreset {
   label: string;
   hexPosition: string;
@@ -15,34 +48,98 @@ export const WALL_POSITION: PositionPreset = {
   hexPosition: '00000000',
 };
 
+let mountQueue: Promise<unknown> = Promise.resolve();
+// Only the last position asked for matters: the ones queued behind it would
+// drive the mount somewhere the user has already moved on from.
+let requestedPreset: PositionPreset | null = null;
+
 let peripheralInstance: Peripheral | null;
+// The disconnect handler clears `peripheralInstance` on its own, which would
+// leave the cleanup below with nothing to work on. Keep the last peripheral we
+// talked to so a failed attempt can always tell noble to let go of it.
+let lastPeripheral: Peripheral | null;
 
 function toError(err: unknown): Error {
   return err instanceof Error ? err : new Error(String(err));
 }
 
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function withTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  label: string,
+): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(
+          () => reject(new Error(`${label} timed out after ${timeoutMs}ms`)),
+          timeoutMs,
+        );
+      }),
+    ]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
+ * Bound a request by both a timeout and the life of the link. Once the mount is
+ * gone, waiting for the timeout only delays the retry: nothing can come back
+ * over a link that dropped, and a connection that dropped while being opened
+ * will never come up either.
+ */
+async function whileLinkHolds<T>(
+  peripheral: Peripheral,
+  request: Promise<T>,
+  timeoutMs: number,
+  label: string,
+): Promise<T> {
+  let onDisconnect: (() => void) | undefined;
+  const disconnected = new Promise<never>((_, reject) => {
+    onDisconnect = () =>
+      reject(new Error(`${label} aborted: the mount disconnected`));
+    peripheral.once('disconnect', onDisconnect);
+  });
+
+  try {
+    return await withTimeout(
+      Promise.race([request, disconnected]),
+      timeoutMs,
+      label,
+    );
+  } finally {
+    if (onDisconnect) peripheral.removeListener('disconnect', onDisconnect);
+  }
+}
+
+async function stopScanning(log: Logging): Promise<void> {
+  try {
+    await noble.stopScanningAsync();
+  } catch (err) {
+    log.warn('[stopScanning] Failed to stop scan', toError(err).message);
+  }
+}
+
 export async function detectFirstMotionMountPeripheral(
   log: Logging,
 ): Promise<Peripheral> {
-  log.info('[detectFirstMotionMountPeripheral] Removing discover listeners');
+  log.debug('[detectFirstMotionMountPeripheral] Removing discover listeners');
   noble.removeAllListeners('discover');
 
-  return new Promise<Peripheral>((resolve, reject) => {
+  const discovery = new Promise<Peripheral>((resolve, reject) => {
     noble.on('discover', (peripheral: Peripheral) => {
       log.info(
         '[detectFirstMotionMountPeripheral] Peripheral discovered, stopping scan',
       );
-      noble
-        .stopScanningAsync()
-        .catch((err: unknown) =>
-          log.warn(
-            '[detectFirstMotionMountPeripheral] Failed to stop scan',
-            toError(err).message,
-          ),
-        )
-        .finally(() => resolve(peripheral));
+      void stopScanning(log).finally(() => resolve(peripheral));
     });
-    log.info('[detectFirstMotionMountPeripheral] Starting scan');
+    log.debug('[detectFirstMotionMountPeripheral] Starting scan');
     noble
       .startScanningAsync([MOTION_MOUNT_SERVICE_UUID], false)
       .catch((err: unknown) => {
@@ -50,22 +147,112 @@ export async function detectFirstMotionMountPeripheral(
         reject(toError(err));
       });
   });
+
+  try {
+    return await withTimeout(discovery, SCAN_TIMEOUT_MS, 'Scan');
+  } catch (err) {
+    // A scan left running keeps the adapter busy and starves the next attempt.
+    noble.removeAllListeners('discover');
+    await stopScanning(log);
+    throw toError(err);
+  }
+}
+
+/**
+ * Drop noble's own cached objects for that peripheral.
+ *
+ * Abandoning a request — on a timeout or because the link dropped — only
+ * abandons the promise: noble keeps waiting for a reply that will never come,
+ * and every later request on that peripheral queues behind it for the lifetime
+ * of the process. noble reuses its cached peripheral on rediscovery, so the
+ * cache has to go for the next attempt to start from clean objects.
+ */
+function forgetInNoble(peripheral: Peripheral): void {
+  const caches = noble as unknown as Record<
+    string,
+    Record<string, unknown> | undefined
+  >;
+  for (const name of [
+    '_peripherals',
+    '_services',
+    '_characteristics',
+    '_descriptors',
+  ]) {
+    const cache = caches[name];
+    if (!cache) continue;
+    delete cache[peripheral.id];
+    delete cache[peripheral.uuid];
+  }
+}
+
+/**
+ * Let go of the connection so the next call starts from a fresh discovery.
+ * Disconnecting is best effort: the link is often already gone by then.
+ *
+ * Nothing is gained by holding it. The plugin only ever talks to the mount to
+ * answer a command, and the mount drops the link on its own shortly after it
+ * starts moving, so a cached connection is a dead one by the time the next
+ * command arrives: every command observed reusing one spent 13 to 29 seconds
+ * discovering a link that no longer existed before reconnecting anyway. A move
+ * carries on unattended once the write is acknowledged, so releasing right
+ * after costs nothing and lets the mount advertise again immediately.
+ */
+async function releasePeripheral(log: Logging, reason: string): Promise<void> {
+  const peripheral = peripheralInstance ?? lastPeripheral;
+  peripheralInstance = null;
+  lastPeripheral = null;
+  if (!peripheral) return;
+
+  log.debug('[releasePeripheral]', reason);
+  // Disconnecting one that is already down just hangs until the timeout.
+  if (peripheral.state !== 'disconnected') {
+    try {
+      await withTimeout(
+        peripheral.disconnectAsync(),
+        DISCONNECT_TIMEOUT_MS,
+        'Disconnect',
+      );
+    } catch (err) {
+      log.warn(
+        '[releasePeripheral] Failed to disconnect',
+        toError(err).message,
+      );
+    }
+  }
+  forgetInNoble(peripheral);
 }
 
 async function getPeripheral(log: Logging): Promise<Peripheral> {
   if (!peripheralInstance) {
-    log.info('[getPeripheral] Detecting peripheral ...');
-    peripheralInstance = await detectFirstMotionMountPeripheral(log);
-    log.info('[getPeripheral] Peripheral detected');
+    log.debug('[getPeripheral] Detecting peripheral ...');
+    const peripheral = await detectFirstMotionMountPeripheral(log);
+    peripheral.once('disconnect', () => {
+      // Stay quiet when we are the ones who just let go of it.
+      if (peripheralInstance !== peripheral) return;
+      log.info('[getPeripheral] Peripheral disconnected, dropping it');
+      peripheralInstance = null;
+    });
+    peripheralInstance = peripheral;
+    lastPeripheral = peripheral;
+    log.debug('[getPeripheral] Peripheral detected');
   }
 
   if (peripheralInstance.state === 'connected') {
-    log.info('[getPeripheral] Already connected, returning as is');
+    log.debug('[getPeripheral] Already connected, returning as is');
     return peripheralInstance;
   }
 
-  log.info('[getPeripheral] Connecting ...');
-  await peripheralInstance.connectAsync();
+  log.debug('[getPeripheral] Connecting ...');
+  // `connectAsync` does forward connection parameters, it is only the bundled
+  // types that stop at the no-argument form.
+  const connect: ConnectWithParameters =
+    peripheralInstance.connectAsync.bind(peripheralInstance);
+  await whileLinkHolds(
+    peripheralInstance,
+    connect(CONNECTION_PARAMETERS),
+    CONNECT_TIMEOUT_MS,
+    'Connect',
+  );
   log.info(
     '[getPeripheral] Connection established, rssi =',
     peripheralInstance.rssi,
@@ -73,50 +260,127 @@ async function getPeripheral(log: Logging): Promise<Peripheral> {
   return peripheralInstance;
 }
 
+/**
+ * Run one conversation with the mount at a time.
+ *
+ * Concurrent calls trample each other: the scan listener is global, so one scan
+ * unregisters another's, and an operation releasing the connection pulls it
+ * from under its neighbour. Nothing is gained by overlapping them either — a
+ * single radio talks to a single mount.
+ */
+function serialise<T>(action: () => Promise<T>): Promise<T> {
+  const result = mountQueue.then(action, action);
+  mountQueue = result.then(
+    () => undefined,
+    () => undefined,
+  );
+  return result;
+}
+
+async function withRetry<T>(
+  label: string,
+  log: Logging,
+  action: () => Promise<T>,
+): Promise<T> {
+  let lastError = new Error(`[${label}] never ran`);
+
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
+    try {
+      return await action();
+    } catch (err) {
+      lastError = toError(err);
+      log.error(
+        `[${label}] Attempt ${attempt}/${MAX_ATTEMPTS} failed:`,
+        lastError.message,
+      );
+      // Whatever failed, the link can no longer be trusted: start the next
+      // attempt from a fresh discovery rather than piling requests onto a
+      // half-dead connection.
+      await releasePeripheral(log, 'Dropping the connection after a failure');
+      if (attempt < MAX_ATTEMPTS) {
+        log.info(`[${label}] Retrying with a fresh connection`);
+        await delay(RETRY_DELAY_MS);
+      }
+    }
+  }
+
+  throw lastError;
+}
+
+async function writePosition(
+  positionPreset: PositionPreset,
+  log: Logging,
+): Promise<void> {
+  const peripheral = await getPeripheral(log);
+
+  log.debug('[moveToPosition] Getting characteristics ...');
+  const { characteristics } = await whileLinkHolds(
+    peripheral,
+    peripheral.discoverSomeServicesAndCharacteristicsAsync(
+      [],
+      [MOTION_MOUNT_SET_POSITION_CHARACTERISTIC_UUID],
+    ),
+    DISCOVER_TIMEOUT_MS,
+    'Characteristic discovery',
+  );
+
+  // The macOS binding ignores the characteristic filter and returns the whole
+  // service, so never rely on the returned order: match the uuid explicitly.
+  const setPositionCharacteristic = characteristics.find(
+    ({ uuid }) => uuid === MOTION_MOUNT_SET_POSITION_CHARACTERISTIC_UUID,
+  );
+  if (!setPositionCharacteristic) {
+    throw new Error(
+      `Characteristic ${MOTION_MOUNT_SET_POSITION_CHARACTERISTIC_UUID} not found`,
+    );
+  }
+
+  // The characteristic only advertises `write` (with response); writing it
+  // without response is silently dropped by CoreBluetooth on macOS.
+  await whileLinkHolds(
+    peripheral,
+    setPositionCharacteristic.writeAsync(
+      Buffer.from(positionPreset.hexPosition, 'hex'),
+      false,
+    ),
+    WRITE_TIMEOUT_MS,
+    'Position write',
+  );
+  log.info('[moveToPosition] Position written');
+}
+
 export async function moveToPosition(
   positionPreset: PositionPreset,
   log: Logging,
 ): Promise<void> {
-  log.info('[moveToPosition] Going to', positionPreset.label);
-  const peripheral = await getPeripheral(log);
+  requestedPreset = positionPreset;
+  log.info('[moveToPosition] Requested', positionPreset.label);
 
-  try {
-    log.info('[moveToPosition] Getting characteristics ...');
-    const { characteristics } =
-      await peripheral.discoverSomeServicesAndCharacteristicsAsync(
-        [],
-        [MOTION_MOUNT_SET_POSITION_CHARACTERISTIC_UUID],
-      );
-
-    // The macOS binding ignores the characteristic filter and returns the whole
-    // service, so never rely on the returned order: match the uuid explicitly.
-    const setPositionCharacteristic = characteristics.find(
-      ({ uuid }) => uuid === MOTION_MOUNT_SET_POSITION_CHARACTERISTIC_UUID,
-    );
-    if (!setPositionCharacteristic) {
-      throw new Error(
-        `Characteristic ${MOTION_MOUNT_SET_POSITION_CHARACTERISTIC_UUID} not found`,
-      );
+  return serialise(async () => {
+    const target = requestedPreset;
+    requestedPreset = null;
+    if (!target) {
+      log.info('[moveToPosition] Superseded by a newer request, skipping');
+      return;
     }
 
-    // The characteristic only advertises `write` (with response); writing it
-    // without response is silently dropped by CoreBluetooth on macOS.
-    await setPositionCharacteristic.writeAsync(
-      Buffer.from(positionPreset.hexPosition, 'hex'),
-      false,
-    );
-  } catch (err) {
-    log.error('[moveToPosition]', toError(err).message);
-  }
+    log.info('[moveToPosition] Going to', target.label);
+    try {
+      await withRetry('moveToPosition', log, () => writePosition(target, log));
+    } finally {
+      await releasePeripheral(log, 'Move done, releasing the connection');
+    }
+  });
 }
 
-export async function retrievePositionPresets(
-  log: Logging,
-): Promise<PositionPreset[]> {
-  log.info('[retrievedStoredPositions] Starting the retrieval');
+async function readPositionPresets(log: Logging): Promise<PositionPreset[]> {
   const peripheral = await getPeripheral(log);
-  const { characteristics } =
-    await peripheral.discoverAllServicesAndCharacteristicsAsync();
+  const { characteristics } = await whileLinkHolds(
+    peripheral,
+    peripheral.discoverAllServicesAndCharacteristicsAsync(),
+    DISCOVER_TIMEOUT_MS,
+    'Service discovery',
+  );
   // Omitting `2a00-2a05` retrieved by some devices
   const normalizedCharacteristics = characteristics.filter(({ uuid }) =>
     uuid.startsWith('c005fa'),
@@ -132,10 +396,15 @@ export async function retrievePositionPresets(
     index <= presetEndingIndex;
     index += 1
   ) {
-    const [presetPartOne, presetPartTwo] = await Promise.all([
-      normalizedCharacteristics[index].readAsync(),
-      normalizedCharacteristics[index + presetIndexOffset].readAsync(),
-    ]);
+    const [presetPartOne, presetPartTwo] = await whileLinkHolds(
+      peripheral,
+      Promise.all([
+        normalizedCharacteristics[index].readAsync(),
+        normalizedCharacteristics[index + presetIndexOffset].readAsync(),
+      ]),
+      READ_TIMEOUT_MS,
+      `Preset #${index} read`,
+    );
     const presetHex =
       presetPartOne.toString('hex') + presetPartTwo.toString('hex');
 
@@ -151,4 +420,19 @@ export async function retrievePositionPresets(
   }
   log.info('[retrievedStoredPositions] #Presets found', positionPresets.length);
   return positionPresets;
+}
+
+export async function retrievePositionPresets(
+  log: Logging,
+): Promise<PositionPreset[]> {
+  log.debug('[retrievedStoredPositions] Starting the retrieval');
+  return serialise(async () => {
+    try {
+      return await withRetry('retrievedStoredPositions', log, () =>
+        readPositionPresets(log),
+      );
+    } finally {
+      await releasePeripheral(log, 'Presets read, releasing the connection');
+    }
+  });
 }
