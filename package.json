@@ -1,6 +1,6 @@
 {
   "name": "homebridge-vogels-motionmount",
-  "version": "2.0.0",
+  "version": "2.0.0-alpha.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:howm/homebridge-vogels-motionmount.git",
@@ -9,7 +9,12 @@
   "license": "MIT",
   "private": false,
   "keywords": [
-    "homebridge-plugin"
+    "homebridge-plugin",
+    "homebridge",
+    "vogels",
+    "motionmount",
+    "bluetooth",
+    "ble"
   ],
   "files": [
     "dist"

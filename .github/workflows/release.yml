@@ -29,7 +29,21 @@ jobs:
       - name: Build output 🛠
         run: pnpm build
 
+      # A prerelease published without an explicit dist-tag lands on `latest`,
+      # which would hand it to every existing install on its next update.
+      # `2.0.0-alpha.0` goes out as `alpha`, `2.0.0` as `latest`.
+      - name: Resolve the dist-tag 🏷
+        id: dist-tag
+        run: |
+          version=$(node -p "require('./package.json').version")
+          prerelease=${version#*-}
+          if [ "$prerelease" = "$version" ]; then
+            echo "tag=latest" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${prerelease%%.*}" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Publish to npm 🚀
-        run: npm publish --provenance --access public --ignore-scripts
+        run: npm publish --provenance --access public --ignore-scripts --tag ${{ steps.dist-tag.outputs.tag }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
