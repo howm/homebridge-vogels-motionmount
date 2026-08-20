@@ -38,7 +38,7 @@
     "@types/node": "^26.2.0",
     "eslint": "^10.8.0",
     "eslint-config-prettier": "^10.1.8",
-    "homebridge": "^2.2.1",
+    "homebridge": "^2.4.0",
     "node-gyp": "^13.0.1",
     "prettier": "^3.9.6",
     "typescript": "^6.0.3",
